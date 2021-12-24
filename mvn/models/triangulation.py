@@ -237,7 +237,7 @@ class VolumetricTriangulationNet(nn.Module):
 
         self.process_features = nn.Sequential(
             nn.Conv2d(256, 32, 1)
-        )
+        ) # 1x1 Conv2d to squeeze the channel size before procesing volumes
 
         self.volume_net = V2VModel(32, self.num_joints)
 
@@ -279,8 +279,8 @@ class VolumetricTriangulationNet(nn.Module):
 
         # build coord volumes
         cuboids = []
-        base_points = torch.zeros(batch_size, 3, device=device)
-        coord_volumes = torch.zeros(batch_size, self.volume_size, self.volume_size, self.volume_size, 3, device=device)
+        base_points = torch.zeros(batch_size, 3, device=device) # store pelvis coordinates
+        coord_volumes = torch.zeros(batch_size, self.volume_size, self.volume_size, self.volume_size, 3, device=device) # b x 64 x 64 x 64 x 3
         for batch_i in range(batch_size):
             # if self.use_precalculated_pelvis:
             if self.use_gt_pelvis:
@@ -296,7 +296,7 @@ class VolumetricTriangulationNet(nn.Module):
             base_points[batch_i] = torch.from_numpy(base_point).to(device)
 
             # build cuboid
-            sides = np.array([self.cuboid_side, self.cuboid_side, self.cuboid_side])
+            sides = np.array([self.cuboid_side, self.cuboid_side, self.cuboid_side]) # 2500 x 2500 x 2500
             position = base_point - sides / 2
             cuboid = volumetric.Cuboid3D(position, sides)
 
@@ -314,7 +314,7 @@ class VolumetricTriangulationNet(nn.Module):
 
             coord_volume = grid_coord.reshape(self.volume_size, self.volume_size, self.volume_size, 3)
 
-            # random rotation
+            # random rotation on axis
             if self.training:
                 theta = np.random.uniform(0.0, 2 * np.pi)
             else:
@@ -328,9 +328,9 @@ class VolumetricTriangulationNet(nn.Module):
             center = torch.from_numpy(base_point).type(torch.float).to(device)
 
             # rotate
-            coord_volume = coord_volume - center
-            coord_volume = volumetric.rotate_coord_volume(coord_volume, theta, axis)
-            coord_volume = coord_volume + center
+            coord_volume = coord_volume - center # translate to local coordinates
+            coord_volume = volumetric.rotate_coord_volume(coord_volume, theta, axis) # random rotation
+            coord_volume = coord_volume + center # translate back to global coordinates
 
             # transfer
             if self.transfer_cmu_to_human36m:  # different world coordinates
@@ -350,6 +350,7 @@ class VolumetricTriangulationNet(nn.Module):
 
         # integral 3d
         volumes = self.volume_net(volumes)
+        # convert back to 3d keypoints
         vol_keypoints_3d, volumes = op.integrate_tensor_3d_with_coordinates(volumes * self.volume_multiplier, coord_volumes, softmax=self.volume_softmax)
 
         return vol_keypoints_3d, features, volumes, vol_confidences, cuboids, coord_volumes, base_points

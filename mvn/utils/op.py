@@ -113,7 +113,8 @@ def unproject_heatmaps(heatmaps, proj_matricies, coord_volumes, volume_aggregati
         for view_i in range(n_views):
             heatmap = heatmaps[batch_i, view_i]
             heatmap = heatmap.unsqueeze(0)
-
+            
+            # proj_volumes N x C x H x W
             grid_coord_proj = multiview.project_3d_points_to_image_plane_without_distortion(
                 proj_matricies[batch_i, view_i], grid_coord, convert_back_to_euclidean=False
             )
@@ -135,7 +136,7 @@ def unproject_heatmaps(heatmaps, proj_matricies, coord_volumes, volume_aggregati
                 current_volume = F.grid_sample(heatmap, grid_coord_proj, align_corners=True)
             except TypeError: # old PyTorch
                 current_volume = F.grid_sample(heatmap, grid_coord_proj)
-
+            # N x C x H x W
             # zero out non-valid points
             current_volume = current_volume.view(n_joints, -1)
             current_volume[:, invalid_mask] = 0.0
