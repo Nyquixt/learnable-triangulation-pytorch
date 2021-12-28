@@ -452,6 +452,8 @@ def main(args):
     if is_distributed:
         model = DistributedDataParallel(model, device_ids=[device])
 
+    torch.cuda.empty_cache()
+
     if not args.eval:
         # train loop
         n_iters_total_train, n_iters_total_val = 0, 0
