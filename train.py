@@ -173,6 +173,7 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
         iterator = enumerate(dataloader)
         if is_train and config.opt.n_iters_per_epoch is not None:
             iterator = islice(iterator, config.opt.n_iters_per_epoch)
+        print(cardinality.count(iterator))
         bar = Bar('Train' if is_train else 'Val', max=cardinality.count(iterator))
         for iter_i, batch in iterator:
             with autograd.detect_anomaly():
@@ -335,17 +336,15 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                     n_iters_total += 1
 
                 # plot progress
-                bar.suffix  = '({batch}/{size}) Data: {data:.6f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f}'.format(
+                bar.suffix  = '({batch}/{size}) Total: {total:} | ETA: {eta:} | Loss: {loss:.4f}'.format(
                             batch=iter_i + 1,
                             size=len(iterator),
-                            data=data_time.val,
-                            bt=batch_time.val,
                             total=bar.elapsed_td,
                             eta=bar.eta_td,
                             loss=l2.item(),
                             )
                 bar.next()
-
+        bar.finish()
     # calculate evaluation metrics
     if master:
         if not is_train:
@@ -374,7 +373,7 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
         # dump to tensorboard per-epoch stats
         for title, value in metric_dict.items():
             writer.add_scalar(f"{name}/{title}_epoch", np.mean(value), epoch)
-    bar.finish()
+    
     return n_iters_total
 
 
