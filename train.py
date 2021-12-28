@@ -173,8 +173,10 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
         iterator = enumerate(dataloader)
         if is_train and config.opt.n_iters_per_epoch is not None:
             iterator = islice(iterator, config.opt.n_iters_per_epoch)
-        print(cardinality.count(iterator))
-        bar = Bar('Train' if is_train else 'Val', max=cardinality.count(iterator))
+        iter_count = sum(1 for _ in iterator)
+        bar_title = 'Train' if is_train else 'Val'
+        print(iter_count, bar_title)
+        bar = Bar(bar_title, max=iter_count)
         for iter_i, batch in iterator:
             with autograd.detect_anomaly():
                 # measure data loading time
