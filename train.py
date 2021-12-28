@@ -29,7 +29,7 @@ from mvn.utils import img, multiview, op, vis, misc, cfg
 from mvn.datasets import human36m
 from mvn.datasets import utils as dataset_utils
 from progress.bar import Bar as Bar
-
+import cardinality
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -173,7 +173,7 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
         iterator = enumerate(dataloader)
         if is_train and config.opt.n_iters_per_epoch is not None:
             iterator = islice(iterator, config.opt.n_iters_per_epoch)
-        bar = Bar('Train' if is_train else 'Val', max=len(iterator))
+        bar = Bar('Train' if is_train else 'Val', max=cardinality.count(iterator))
         for iter_i, batch in iterator:
             with autograd.detect_anomaly():
                 # measure data loading time
