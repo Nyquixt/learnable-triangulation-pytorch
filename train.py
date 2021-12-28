@@ -28,8 +28,6 @@ from mvn.models.loss import KeypointsMSELoss, KeypointsMSESmoothLoss, KeypointsM
 from mvn.utils import img, multiview, op, vis, misc, cfg
 from mvn.datasets import human36m
 from mvn.datasets import utils as dataset_utils
-from progress.bar import Bar as Bar
-import cardinality
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -173,10 +171,7 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
         iterator = enumerate(dataloader)
         if is_train and config.opt.n_iters_per_epoch is not None:
             iterator = islice(iterator, config.opt.n_iters_per_epoch)
-        iter_count = sum(1 for _ in iterator)
-        bar_title = 'Train' if is_train else 'Val'
-        print(iter_count, bar_title)
-        bar = Bar(bar_title, max=iter_count)
+
         for iter_i, batch in iterator:
             with autograd.detect_anomaly():
                 # measure data loading time
@@ -336,17 +331,7 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                     writer.add_scalar(f"{name}/n_views", n_views, n_iters_total)
 
                     n_iters_total += 1
-
-                # plot progress
-                bar.suffix  = '({batch}/{size}) Total: {total:} | ETA: {eta:} | Loss: {loss:.4f}'.format(
-                            batch=iter_i + 1,
-                            size=len(iterator),
-                            total=bar.elapsed_td,
-                            eta=bar.eta_td,
-                            loss=l2.item(),
-                            )
-                bar.next()
-        bar.finish()
+                    
     # calculate evaluation metrics
     if master:
         if not is_train:
