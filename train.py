@@ -18,7 +18,7 @@ from torch import autograd
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torch.nn.parallel import DistributedDataParallel
+from torch.nn.parallel import DistributedDataParallel, DataParallel
 
 from tensorboardX import SummaryWriter
 
@@ -380,7 +380,8 @@ def init_distributed(args):
 
 
 def main(args):
-    print("Number of available GPUs: {}".format(torch.cuda.device_count()))
+    num_gpus = torch.cuda.device_count()
+    print("Number of available GPUs: {}".format(num_gpus))
 
     is_distributed = init_distributed(args)
     master = True
@@ -390,7 +391,7 @@ def main(args):
     if is_distributed:
         device = torch.device(args.local_rank)
     else:
-        device = torch.device(0)
+        device = torch.device('cuda')
 
     # config
     config = cfg.load_config(args.config)
@@ -450,6 +451,8 @@ def main(args):
     # multi-gpu
     if is_distributed:
         model = DistributedDataParallel(model, device_ids=[device])
+    else:
+        model = DataParallel(model, list(range(num_gpus)))
 
     torch.cuda.empty_cache()
 
