@@ -84,7 +84,7 @@ class RoofingMultiViewDataset(Dataset):
         self.labels['table'] = self.labels['table'][np.concatenate(indices)]
 
         self.num_keypoints = 16 if kind == "mpii" else 17
-        assert self.labels['table']['keypoints'].shape[1] == 17, "Use a newer 'labels' file"
+        assert self.labels['table']['keypoints'].shape[1] == 16, "Use a newer 'labels' file"
 
         self.keypoints_3d_pred = None
         if pred_results_path is not None:

@@ -36,7 +36,7 @@ model:
     init_weights: true
     checkpoint: "./data/pretrained/human36m/pose_resnet_4.5_pixels_human36m.pth"
 
-    num_joints: 17
+    num_joints: 16
     num_layers: 152
 
 dataset:
