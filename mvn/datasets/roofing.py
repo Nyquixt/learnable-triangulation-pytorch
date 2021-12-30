@@ -122,7 +122,7 @@ class RoofingMultiViewDataset(Dataset):
 
             # load image
             image_path = os.path.join(
-                self.roofing_root, subject, action, camera_name, '{}.jpg' % (frame_idx))
+                self.roofing_root, subject, action, camera_name, '{}.jpg'.format(frame_idx))
             assert os.path.isfile(image_path), '%s doesn\'t exist' % image_path
             image = cv2.imread(image_path)
 
