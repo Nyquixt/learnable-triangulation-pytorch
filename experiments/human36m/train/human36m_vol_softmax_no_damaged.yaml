@@ -60,7 +60,7 @@ dataset:
     labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
     pred_results_path: "./data/pretrained/human36m/results/train.pkl"
 
-    with_damaged_actions: true
+    with_damaged_actions: false
     undistort_images: true
 
     scale_bbox: 1.0
@@ -76,7 +76,7 @@ dataset:
     labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
     pred_results_path: "./data/pretrained/human36m/results/val.pkl"
 
-    with_damaged_actions: true
+    with_damaged_actions: false
     undistort_images: true
 
     scale_bbox: 1.0
