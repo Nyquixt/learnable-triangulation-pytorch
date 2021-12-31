@@ -1,4 +1,4 @@
-title: "roofing_alg"
+title: "roofing_vol_softmax"
 kind: "mpii"
 vis_freq: 1000
 vis_n_elements: 10
@@ -6,8 +6,10 @@ vis_n_elements: 10
 image_shape: [384, 384]
 
 opt:
-  criterion: "MSESmooth"
-  mse_smooth_threshold: 400
+  criterion: "MAE"
+
+  use_volumetric_ce_loss: true
+  volumetric_ce_loss_weight: 0.01
 
   n_objects_per_epoch: 15000
   n_epochs: 9999
@@ -15,19 +17,30 @@ opt:
   batch_size: 4
   val_batch_size: 4
 
-  lr: 0.00001
+  lr: 0.0001
+  process_features_lr: 0.001
+  volume_net_lr: 0.001
 
   scale_keypoints_3d: 0.1
 
 model:
-  name: "alg"
+  name: "vol"
+  kind: "mpii"
+  volume_aggregation_method: "softmax"
 
   init_weights: false
   checkpoint: ""
 
-  use_confidences: true
-  heatmap_multiplier: 100.0
+  use_gt_pelvis: false
+
+  cuboid_side: 2500.0
+
+  volume_size: 64
+  volume_multiplier: 1.0
+  volume_softmax: true
+
   heatmap_softmax: true
+  heatmap_multiplier: 100.0
 
   backbone:
     name: "resnet152"
@@ -43,8 +56,9 @@ dataset:
   kind: "human36m"
 
   train:
-    roofing_root: "/data/kien/Roof_Phase3/images"
-    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
+    h36m_root: "./data/human36m/processed/"
+    labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
+    pred_results_path: "./data/pretrained/roofing/results/train.pkl"
 
     scale_bbox: 1.0
 
@@ -55,8 +69,9 @@ dataset:
     num_workers: 4
 
   val:
-    roofing_root: "/data/kien/Roof_Phase3/images"
-    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
+    h36m_root: "./data/human36m/processed/"
+    labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
+    pred_results_path: "./data/pretrained/roofing/results/val.pkl"
 
     scale_bbox: 1.0
 
