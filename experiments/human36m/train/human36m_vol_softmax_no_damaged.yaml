@@ -74,7 +74,7 @@ dataset:
   val:
     h36m_root: "./data/human36m/processed/"
     labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
-    pred_results_path: "./data/pretrained/human36m/results/val.pkl"
+    pred_results_path: "./data/pretrained/human36m/results/val_no_damaged.pkl"
 
     with_damaged_actions: false
     undistort_images: true
