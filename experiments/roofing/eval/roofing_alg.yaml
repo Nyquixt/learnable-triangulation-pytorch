@@ -23,7 +23,7 @@ model:
   name: "alg"
 
   init_weights: true
-  checkpoint: "./logs/roofing_alg_AlgebraicTriangulationNet@30.12.2021-15\:41\:36/checkpoints/0030/weights.pth"
+  checkpoint: "./logs/roofing_alg_AlgebraicTriangulationNet@30.12.2021-15:41:36/checkpoints/0030/weights.pth"
 
   use_confidences: true
   heatmap_multiplier: 100.0
