@@ -391,7 +391,7 @@ def main(args):
     if is_distributed:
         device = torch.device(args.local_rank)
     else:
-        device = torch.device('cuda')
+        device = torch.device(0)
 
     # config
     config = cfg.load_config(args.config)
@@ -451,8 +451,8 @@ def main(args):
     # multi-gpu
     if is_distributed:
         model = DistributedDataParallel(model, device_ids=[device])
-    else:
-        model = DataParallel(model, list(range(num_gpus)))
+    # else:
+    #     model = DataParallel(model, list(range(num_gpus)))
 
     torch.cuda.empty_cache()
 
