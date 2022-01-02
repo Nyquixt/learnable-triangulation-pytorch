@@ -3,7 +3,7 @@ kind: "human36m"
 vis_freq: 1000
 vis_n_elements: 10
 
-image_shape: [384, 384]
+image_shape: [256, 256]
 
 opt:
   criterion: "MSESmooth"
@@ -12,8 +12,8 @@ opt:
   n_objects_per_epoch: 15000
   n_epochs: 9999
 
-  batch_size: 8
-  val_batch_size: 100
+  batch_size: 4
+  val_batch_size: 4
 
   lr: 0.00001
 
@@ -23,7 +23,7 @@ model:
   name: "alg"
 
   init_weights: true
-  checkpoint: "./data/pretrained/human36m/human36m_alg_10-04-2019/checkpoints/0060/weights.pth"
+  checkpoint: "./logs/human36m_alg_AlgebraicTriangulationNet@29.12.2021-18:54:01/checkpoints/0060/weights.pth"
 
   use_confidences: true
   heatmap_multiplier: 100.0
@@ -45,7 +45,7 @@ dataset:
   train:
     h36m_root: "./data/human36m/processed/"
     labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
-    with_damaged_actions: true
+    with_damaged_actions: false
     undistort_images: true
 
     scale_bbox: 1.0
@@ -54,12 +54,12 @@ dataset:
     randomize_n_views: false
     min_n_views: null
     max_n_views: null
-    num_workers: 8
+    num_workers: 4
 
   val:
     h36m_root: "./data/human36m/processed/"
     labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
-    with_damaged_actions: true
+    with_damaged_actions: false
     undistort_images: true
 
     scale_bbox: 1.0
@@ -68,6 +68,6 @@ dataset:
     randomize_n_views: false
     min_n_views: null
     max_n_views: null
-    num_workers: 8
+    num_workers: 4
 
     retain_every_n_frames_in_test: 1
