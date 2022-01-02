@@ -56,8 +56,8 @@ dataset:
   kind: "human36m"
 
   train:
-    roofing_root: "./data/human36m/processed/"
-    labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
+    roofing_root: "/data/kien/Roof_Phase3/images"
+    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
     pred_results_path: "./data/pretrained/roofing/results/train.pkl"
 
     scale_bbox: 1.0
@@ -69,8 +69,8 @@ dataset:
     num_workers: 2
 
   val:
-    roofing_root: "./data/human36m/processed/"
-    labels_path: "./data/human36m/extra/human36m-multiview-labels-GTbboxes.npy"
+    roofing_root: "/data/kien/Roof_Phase3/images"
+    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
     pred_results_path: "./data/pretrained/roofing/results/val.pkl"
 
     scale_bbox: 1.0
