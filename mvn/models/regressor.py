@@ -86,7 +86,7 @@ class V2VRegressor(nn.Module):
         x = self.front_layers(x)
         x = self.encoder(x)
         x = self.back_layers(x)
-        # TODO: flatten
+        # flatten
         x = torch.flatten(x, 1)
         x = self.regressor(x)
         return x

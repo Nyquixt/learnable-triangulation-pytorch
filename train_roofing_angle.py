@@ -282,6 +282,9 @@ def main(args):
     if config.model.init_weights:
         state_dict = torch.load(config.model.checkpoint)
         for key in list(state_dict.keys()):
+            if 'volume_net.back_layers' in key:
+                state_dict.pop(key)
+                continue
             new_key = key.replace("module.", "")
             state_dict[new_key] = state_dict.pop(key)
 
@@ -294,6 +297,9 @@ def main(args):
     # freeze pretrained weights
     for name, param in model.named_parameters():
         param.requires_grad = False
+
+    for name, param in model.volume_net.back_layers.named_parameters():
+        param.requires_grad = True
 
     for name, param in model.volume_net.regressor.named_parameters():
         param.requires_grad = True
