@@ -14,8 +14,8 @@ opt:
   n_objects_per_epoch: 15000
   n_epochs: 9999
 
-  batch_size: 4
-  val_batch_size: 4
+  batch_size: 2 
+  val_batch_size: 2
 
   lr: 0.0001
   process_features_lr: 0.001
@@ -66,7 +66,7 @@ dataset:
     randomize_n_views: false
     min_n_views: null
     max_n_views: null
-    num_workers: 2
+    num_workers: 1
 
   val:
     roofing_root: "/data/kien/Roof_Phase3/images"
@@ -79,6 +79,6 @@ dataset:
     randomize_n_views: false
     min_n_views: null
     max_n_views: null
-    num_workers: 2
+    num_workers: 1
 
     retain_every_n_frames_in_test: 1

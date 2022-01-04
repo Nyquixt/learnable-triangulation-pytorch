@@ -1,9 +1,9 @@
-title: "roofing_vol_softmax"
+title: "roofing_vol_softmax_gt"
 kind: "mpii"
 vis_freq: 1000
 vis_n_elements: 10
 
-image_shape: [384, 384]
+image_shape: [256, 256]
 
 opt:
   criterion: "MAE"
@@ -14,8 +14,8 @@ opt:
   n_objects_per_epoch: 15000
   n_epochs: 9999
 
-  batch_size: 4
-  val_batch_size: 4
+  batch_size: 2
+  val_batch_size: 2
 
   lr: 0.0001
   process_features_lr: 0.001
@@ -56,7 +56,7 @@ dataset:
   kind: "human36m"
 
   train:
-    h36m_root: "/data/kien/Roof_Phase3/images"
+    roofing_root: "/data/kien/Roof_Phase3/images"
     labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
 
     scale_bbox: 1.0
@@ -68,7 +68,7 @@ dataset:
     num_workers: 4
 
   val:
-    h36m_root: "/data/kien/Roof_Phase3/images"
+    roofing_root: "/data/kien/Roof_Phase3/images"
     labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
 
     scale_bbox: 1.0
