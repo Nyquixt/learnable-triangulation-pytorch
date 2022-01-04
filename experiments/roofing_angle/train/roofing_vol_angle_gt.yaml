@@ -58,7 +58,7 @@ dataset:
   kind: "human36m"
 
   train:
-    h36m_root: "/data/kien/Roof_Phase3/images"
+    roofing_root: "/data/kien/Roof_Phase3/images"
     labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
 
     scale_bbox: 1.0
@@ -70,7 +70,7 @@ dataset:
     num_workers: 4
 
   val:
-    h36m_root: "/data/kien/Roof_Phase3/images"
+    roofing_root: "/data/kien/Roof_Phase3/images"
     labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
 
     scale_bbox: 1.0
