@@ -287,6 +287,7 @@ class RoofingMultiViewDataset(Dataset):
                 (angles_gt.shape, angles_pred.shape))
 
         per_pose_error = np.sqrt(((angles_gt - angles_pred) ** 2)).mean(1)
+        print(per_pose_error.shape)
 
         subject_scores = {
             'Average': evaluate_by_actions(self, per_pose_error)
