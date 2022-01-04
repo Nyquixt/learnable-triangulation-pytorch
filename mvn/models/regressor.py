@@ -2,7 +2,7 @@ from copy import deepcopy
 import numpy as np
 
 import torch
-from v2v import Basic3DBlock, Res3DBlock, Pool3DBlock
+from mvn.models.v2v import Basic3DBlock, Res3DBlock, Pool3DBlock
 import torch.nn as nn
 import torch.nn.functional as F
 from mvn.utils import op, volumetric

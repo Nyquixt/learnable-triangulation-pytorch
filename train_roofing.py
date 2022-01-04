@@ -7,15 +7,10 @@ from datetime import datetime
 from collections import defaultdict
 from itertools import islice
 import pickle
-import copy
 
 import numpy as np
-import cv2
 
 import torch
-from torch import nn
-from torch import autograd
-import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel
@@ -25,7 +20,7 @@ from tensorboardX import SummaryWriter
 from mvn.models.triangulation import RANSACTriangulationNet, AlgebraicTriangulationNet, VolumetricTriangulationNet
 from mvn.models.loss import KeypointsMSELoss, KeypointsMSESmoothLoss, KeypointsMAELoss, KeypointsL2Loss, VolumetricCELoss
 
-from mvn.utils import img, multiview, op, vis, misc, cfg
+from mvn.utils import vis, misc, cfg
 from mvn.datasets import roofing
 from mvn.datasets import utils as dataset_utils
 

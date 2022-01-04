@@ -14,8 +14,8 @@ opt:
   n_objects_per_epoch: 15000
   n_epochs: 9999
 
-  batch_size: 2
-  val_batch_size: 2
+  batch_size: 4
+  val_batch_size: 4
 
   lr: 0.0001
   process_features_lr: 0.001
@@ -28,8 +28,8 @@ model:
   kind: "mpii"
   volume_aggregation_method: "softmax"
 
-  init_weights: false
-  checkpoint: ""
+  init_weights: true
+  checkpoint: "data/pretrained/roofing/roofing_vol_gt_0006.pth"
 
   use_gt_pelvis: true
 
@@ -42,15 +42,16 @@ model:
   heatmap_softmax: true
   heatmap_multiplier: 100.0
 
+  num_angles: 16
+
   backbone:
     name: "resnet152"
     style: "simple"
 
     init_weights: true
-    checkpoint: "./data/pretrained/human36m/pose_resnet_4.5_pixels_human36m.pth"
+    checkpoint: "data/pretrained/roofing/roofing_vol_gt_0006.pth"
 
     num_joints: 16
-    num_angles: 16
     num_layers: 152
 
 dataset:

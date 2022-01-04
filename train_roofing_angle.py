@@ -7,25 +7,20 @@ from datetime import datetime
 from collections import defaultdict
 from itertools import islice
 import pickle
-import copy
 
 import numpy as np
-import cv2
 
 import torch
 from torch import nn
-from torch import autograd
-import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel
-from mvn.models.triangulation import VolumetricTriangulationNet
 
 from tensorboardX import SummaryWriter
 
 from mvn.models.regressor import VolumetricAngleRegressor
 
-from mvn.utils import img, multiview, op, vis, misc, cfg
+from mvn.utils import misc, cfg
 from mvn.datasets import roofing
 from mvn.datasets import utils_angle as dataset_utils
 
@@ -282,7 +277,7 @@ def main(args):
     config = cfg.load_config(args.config)
     config.opt.n_iters_per_epoch = config.opt.n_objects_per_epoch // config.opt.batch_size
 
-    model = VolumetricTriangulationNet(config, device=device).to(device)
+    model = VolumetricAngleRegressor(config, device=device).to(device)
 
     if config.model.init_weights:
         state_dict = torch.load(config.model.checkpoint)
@@ -296,21 +291,17 @@ def main(args):
     # criterion
     criterion = nn.MSELoss()
 
-    # TODO: freeze pretrained
+    # freeze pretrained weights
+    for name, param in model.named_parameters():
+        param.requires_grad = False
+
+    for name, param in model.volume_net.regressor.named_parameters():
+        param.requires_grad = True
 
     # optimizer
     opt = None
     if not args.eval:
-        if config.model.name == "vol":
-            opt = torch.optim.Adam(
-                [{'params': model.backbone.parameters()},
-                 {'params': model.process_features.parameters(), 'lr': config.opt.process_features_lr if hasattr(config.opt, "process_features_lr") else config.opt.lr},
-                 {'params': model.volume_net.parameters(), 'lr': config.opt.volume_net_lr if hasattr(config.opt, "volume_net_lr") else config.opt.lr}
-                ],
-                lr=config.opt.lr
-            )
-        else:
-            opt = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.opt.lr)
+        opt = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.opt.lr)
 
 
     # datasets
