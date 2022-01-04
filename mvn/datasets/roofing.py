@@ -163,6 +163,9 @@ class RoofingMultiViewDataset(Dataset):
         # position = base_point - sides / 2
         # sample['cuboids'] = volumetric.Cuboid3D(position, sides)
 
+        # add ground truth angles, convert from degrees to radians
+        sample['angles'] = np.deg2rad(shot['angles'])
+
         # save sample's index
         sample['indexes'] = idx
 
@@ -255,3 +258,61 @@ class RoofingMultiViewDataset(Dataset):
         }
 
         return result['per_pose_error_relative']['Average']['Average'], result
+
+    def evaluate_angles(self, angles_pred):
+        def evaluate_by_actions(self, per_pose_error, mask=None):
+            if mask is None:
+                mask = np.ones_like(per_pose_error, dtype=bool)
+
+            action_scores = {
+                'Average': {'total_loss': per_pose_error[mask].sum(), 'frame_count': np.count_nonzero(mask)}
+            }
+
+            for action_idx in range(len(self.labels['action_names'])):
+                action_mask = (self.labels['table']['action_idx'] == action_idx) & mask
+                action_per_pose_error = per_pose_error[action_mask]
+                action_scores[self.labels['action_names'][action_idx]] = {
+                    'total_loss': action_per_pose_error.sum(), 'frame_count': len(action_per_pose_error)
+                }
+
+            action_names_without_trials = \
+                [name[:-2] for name in self.labels['action_names'] if name.endswith('-1')]
+
+            for action_name_without_trial in action_names_without_trials:
+                combined_score = {'total_loss': 0.0, 'frame_count': 0}
+
+                for trial in 1, 2:
+                    action_name = '%s-%d' % (action_name_without_trial, trial)
+                    combined_score['total_loss'] += action_scores[action_name]['total_loss']
+                    combined_score['frame_count'] += action_scores[action_name]['frame_count']
+                    del action_scores[action_name]
+
+                action_scores[action_name_without_trial] = combined_score
+
+            for k, v in action_scores.items():
+                action_scores[k] = float('nan') if v['frame_count'] == 0 else (v['total_loss'] / v['frame_count'])
+
+            return action_scores
+        
+        angles_gt = self.labels['table']['angles'][:, :self.num_angles]
+        if angles_pred.shape != angles_gt.shape:
+            raise ValueError(
+                '`angles_pred` shape should be %s, got %s' % \
+                (angles_gt.shape, angles_pred.shape))
+
+        per_pose_error = np.sqrt(((angles_gt - angles_pred) ** 2)).mean(1)
+
+        subject_scores = {
+            'Average': evaluate_by_actions(self, per_pose_error)
+        }
+
+        for subject_idx in range(len(self.labels['subject_names'])):
+            subject_mask = self.labels['table']['subject_idx'] == subject_idx
+            subject_scores[self.labels['subject_names'][subject_idx]] = \
+                evaluate_by_actions(self, per_pose_error, subject_mask)
+
+        result = {
+            'per_pose_error': subject_scores
+        }
+
+        return result['per_pose_error']['Average']['Average'], result
