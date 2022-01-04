@@ -275,20 +275,6 @@ class RoofingMultiViewDataset(Dataset):
                     'total_loss': action_per_pose_error.sum(), 'frame_count': len(action_per_pose_error)
                 }
 
-            action_names_without_trials = \
-                [name[:-2] for name in self.labels['action_names'] if name.endswith('-1')]
-
-            for action_name_without_trial in action_names_without_trials:
-                combined_score = {'total_loss': 0.0, 'frame_count': 0}
-
-                for trial in 1, 2:
-                    action_name = '%s-%d' % (action_name_without_trial, trial)
-                    combined_score['total_loss'] += action_scores[action_name]['total_loss']
-                    combined_score['frame_count'] += action_scores[action_name]['frame_count']
-                    del action_scores[action_name]
-
-                action_scores[action_name_without_trial] = combined_score
-
             for k, v in action_scores.items():
                 action_scores[k] = float('nan') if v['frame_count'] == 0 else (v['total_loss'] / v['frame_count'])
 

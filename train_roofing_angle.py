@@ -203,15 +203,15 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                     for title, value in metric_dict.items():
                         writer.add_scalar(f"{name}/{title}", value[-1], n_iters_total)
 
-                # measure elapsed time
-                batch_time = time.time() - end
-                end = time.time()
+            # measure elapsed time
+            batch_time = time.time() - end
+            end = time.time()
 
-                # dump to tensorboard per-iter time stats
-                writer.add_scalar(f"{name}/batch_time", batch_time, n_iters_total)
-                writer.add_scalar(f"{name}/data_time", data_time, n_iters_total)
+            # dump to tensorboard per-iter time stats
+            writer.add_scalar(f"{name}/batch_time", batch_time, n_iters_total)
+            writer.add_scalar(f"{name}/data_time", data_time, n_iters_total)
 
-                n_iters_total += 1
+            n_iters_total += 1
 
     # calculate evaluation metrics
     if master:
