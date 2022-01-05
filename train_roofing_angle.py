@@ -24,6 +24,14 @@ from mvn.utils import misc, cfg
 from mvn.datasets import roofing
 from mvn.datasets import utils_angle as dataset_utils
 
+def adjust_learning_rate(optimizer, epoch, lr, schedule, gamma):
+    """Sets the learning rate to the initial LR decayed by schedule"""
+    if epoch in schedule:
+        lr *= gamma
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+    return lr
+
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -295,13 +303,15 @@ def main(args):
     criterion = nn.MSELoss()
 
     # freeze pretrained weights
-    for name, param in model.named_parameters():
+    for param in model.parameters():
         param.requires_grad = False
 
-    for name, param in model.volume_net.back_layers.named_parameters():
+    # unfreeze v2v back_layers
+    for param in model.volume_net.back_layers.parameters():
         param.requires_grad = True
 
-    for name, param in model.volume_net.regressor.named_parameters():
+    # unfreeze regressor head
+    for param in model.volume_net.regressor.parameters():
         param.requires_grad = True
 
     # optimizer
@@ -309,6 +319,7 @@ def main(args):
     if not args.eval:
         opt = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.opt.lr)
 
+    lr = config.opt.lr
 
     # datasets
     print("Loading data...")
@@ -329,6 +340,7 @@ def main(args):
         # train loop
         n_iters_total_train, n_iters_total_val = 0, 0
         for epoch in range(config.opt.n_epochs):
+            lr = adjust_learning_rate(opt, epoch, lr, config.opt.schedule, config.opt.gamma)
             if train_sampler is not None:
                 train_sampler.set_epoch(epoch)
 
