@@ -198,10 +198,10 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                 results['angles'].append(angles_pred.detach().cpu().numpy())
                 results['indexes'].append(batch['indexes'])
 
-                # dump to tensorboard per-iter loss/metric stats
-                if is_train:
-                    for title, value in metric_dict.items():
-                        writer.add_scalar(f"{name}/{title}", value[-1], n_iters_total)
+            # dump to tensorboard per-iter loss/metric stats
+            if is_train:
+                for title, value in metric_dict.items():
+                    writer.add_scalar(f"{name}/{title}", value[-1], n_iters_total)
 
             # measure elapsed time
             batch_time = time.time() - end

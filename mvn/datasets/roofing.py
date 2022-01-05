@@ -84,6 +84,7 @@ class RoofingMultiViewDataset(Dataset):
         self.labels['table'] = self.labels['table'][np.concatenate(indices)]
 
         self.num_keypoints = 16 if kind == "mpii" else 17
+        self.num_angles = 16
         assert self.labels['table']['keypoints'].shape[1] == 16, "Use a newer 'labels' file"
 
         self.keypoints_3d_pred = None
@@ -280,7 +281,7 @@ class RoofingMultiViewDataset(Dataset):
 
             return action_scores
         
-        angles_gt = self.labels['table']['angles'][:, :self.num_angles]
+        angles_gt = np.deg2rad(self.labels['table']['angles'][:, :self.num_angles])
         if angles_pred.shape != angles_gt.shape:
             raise ValueError(
                 '`angles_pred` shape should be %s, got %s' % \
