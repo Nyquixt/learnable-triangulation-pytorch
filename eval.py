@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
+from mvn.utils.op import translate_quaternion_to_euler
 angle_names = [
     'knee_angle_r',
     'hip_flexion_r',
@@ -22,6 +22,11 @@ angle_names = [
 ]
 
 def main(gt_angles_trajs, pred_angles_trajs):
+    if pred_angles_trajs.shape[1] == 32:
+        eulers = []
+        for a in pred_angles_trajs:
+            eulers.append(translate_quaternion_to_euler(list(a)))
+        pred_angles_trajs = np.array(eulers)
     print('Mean Squared Error:')
 
     for idx, an in enumerate(angle_names):

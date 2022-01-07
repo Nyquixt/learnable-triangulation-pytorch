@@ -1,6 +1,7 @@
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+from mvn.utils.op import translate_quaternion_to_euler
 
 angle_names = [
     'knee_angle_r',
@@ -32,6 +33,11 @@ def smooth(scalars, weight):  # Weight between 0 and 1
     return smoothed
 
 def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness):
+    if pred_angles_trajs.shape[1] == 32:
+        eulers = []
+        for a in pred_angles_trajs:
+            eulers.append(translate_quaternion_to_euler(list(a)))
+        pred_angles_trajs = np.array(eulers)
     # S08's end frames for Act0, 1, 2
     S08 = [0, 1600, 3320, 4874]
     S08_pred_angles_trajs = pred_angles_trajs[:4874]
