@@ -31,7 +31,7 @@ def smooth(scalars, weight):  # Weight between 0 and 1
         
     return smoothed
 
-def main(gt_angles_trajs, pred_angles_trajs, exp_name):
+def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness):
     # S08's end frames for Act0, 1, 2
     S08 = [0, 1600, 3320, 4874]
     S08_pred_angles_trajs = pred_angles_trajs[:4874]
@@ -53,9 +53,9 @@ def main(gt_angles_trajs, pred_angles_trajs, exp_name):
                 if r < 3:
                     axes[r][c].get_xaxis().set_visible(False)
                 axes[r][c].set_title(angle_names[angle])
-                axes[r][c].plot(smooth(preds_frames[:, angle], 0.1), color='blue')
+                axes[r][c].plot(smooth(preds_frames[:, angle], smoothness), color='blue')
                 axes[r][c].plot(gt_frames[:, angle], color='red')
-
+        fig.legend(['predicted', 'groundtruth'])
         plt.savefig("{}_S08_{}.pdf".format(exp_name, i))
 
     for i in range(1, 4):
@@ -69,9 +69,9 @@ def main(gt_angles_trajs, pred_angles_trajs, exp_name):
                 if r < 3:
                     axes[r][c].get_xaxis().set_visible(False)
                 axes[r][c].set_title(angle_names[angle])
-                axes[r][c].plot(smooth(preds_frames[:, angle], 0.1), color='blue')
+                axes[r][c].plot(smooth(preds_frames[:, angle], smoothness), color='blue')
                 axes[r][c].plot(gt_frames[:, angle], color='red')
-
+        fig.legend(['predicted', 'groundtruth'])
         plt.savefig("{}_S10_{}.pdf".format(exp_name, i))
 
 if __name__ == '__main__':
@@ -79,6 +79,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Save predictions for easier analysis pipeline')
     parser.add_argument('--records', '-r', required=True, type=str, help='prediction records file')
     parser.add_argument('--outfile', '-o', required=True, type=str, help='output file name')
+    parser.add_argument('--smooth', '-s', default=0.5, type=float, help='smoothness of plot')
     args = parser.parse_args()
 
     labels = np.load('../baseline-angles/roofing-multiview-v2.npy', allow_pickle=True).item()
@@ -99,4 +100,4 @@ if __name__ == '__main__':
         data = pickle.load(infile)
     angles_pred = data['angles']
 
-    main(angles_gt, angles_pred, args.outfile)
+    main(angles_gt, angles_pred, args.outfile, args.smooth)
