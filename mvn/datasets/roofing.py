@@ -10,6 +10,7 @@ from torch.utils.data import Dataset
 
 from mvn.utils.multiview import Camera
 from mvn.utils.img import get_square_bbox, resize_image, crop_image, normalize_image, scale_bbox
+from mvn.utils.op import translate_euler_to_quaternion
 from mvn.utils import volumetric
 
 
@@ -30,7 +31,8 @@ class RoofingMultiViewDataset(Dataset):
                  norm_image=True,
                  kind="mpii",
                  ignore_cameras=[],
-                 crop=True
+                 crop=True,
+                 angle_type="euler"
                  ):
         """
             roofing_root:
@@ -61,6 +63,7 @@ class RoofingMultiViewDataset(Dataset):
         self.kind = kind
         self.ignore_cameras = ignore_cameras
         self.crop = crop
+        self.angle_type = angle_type
 
         self.labels = np.load(labels_path, allow_pickle=True).item()
 
@@ -84,7 +87,7 @@ class RoofingMultiViewDataset(Dataset):
         self.labels['table'] = self.labels['table'][np.concatenate(indices)]
 
         self.num_keypoints = 16 if kind == "mpii" else 17
-        self.num_angles = 16
+        self.num_angles = 16 if angle_type == "euler" else 32
         assert self.labels['table']['keypoints'].shape[1] == 16, "Use a newer 'labels' file"
 
         self.keypoints_3d_pred = None
@@ -165,7 +168,10 @@ class RoofingMultiViewDataset(Dataset):
         # sample['cuboids'] = volumetric.Cuboid3D(position, sides)
 
         # add ground truth angles, convert from degrees to radians
-        sample['angles'] = np.deg2rad(shot['angles'])
+        if self.angle_type == "euler":
+            sample['angles'] = np.deg2rad(shot['angles'])
+        else:
+            sample['angles'] = translate_euler_to_quaternion( np.deg2rad(shot['angles']) )
 
         # save sample's index
         sample['indexes'] = idx

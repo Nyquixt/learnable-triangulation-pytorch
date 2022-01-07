@@ -63,6 +63,7 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
             kind=config.kind,
             ignore_cameras=config.dataset.train.ignore_cameras if hasattr(config.dataset.train, "ignore_cameras") else [],
             crop=config.dataset.train.crop if hasattr(config.dataset.train, "crop") else True,
+            angle_type=config.opt.angle_type
         )
 
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if distributed_train else None
@@ -93,6 +94,7 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
         kind=config.kind,
         ignore_cameras=config.dataset.val.ignore_cameras if hasattr(config.dataset.val, "ignore_cameras") else [],
         crop=config.dataset.val.crop if hasattr(config.dataset.val, "crop") else True,
+        angle_type=config.opt.angle_type
     )
 
     val_dataloader = DataLoader(

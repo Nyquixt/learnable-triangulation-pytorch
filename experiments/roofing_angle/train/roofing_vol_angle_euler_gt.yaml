@@ -24,6 +24,8 @@ opt:
   schedule: [10, 20]
   gamma: 0.1
 
+  angle_type: "euler"
+
   scale_keypoints_3d: 0.1
 
 model:
@@ -44,8 +46,6 @@ model:
 
   heatmap_softmax: true
   heatmap_multiplier: 100.0
-
-  num_angles: 16
 
   backbone:
     name: "resnet152"

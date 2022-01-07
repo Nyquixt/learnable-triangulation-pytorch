@@ -107,7 +107,7 @@ class VolumetricAngleRegressor(nn.Module):
         super().__init__()
 
         self.num_joints = config.model.backbone.num_joints
-        self.num_angles = config.model.num_angles
+        self.num_angles = 16 if config.opt.angle_type == "euler" else 32
         self.volume_aggregation_method = config.model.volume_aggregation_method
 
         # volume
