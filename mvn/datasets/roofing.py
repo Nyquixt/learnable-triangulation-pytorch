@@ -287,7 +287,12 @@ class RoofingMultiViewDataset(Dataset):
 
             return action_scores
         
-        angles_gt = np.deg2rad(self.labels['table']['angles'][:, :self.num_angles])
+        angles_gt = np.deg2rad(self.labels['table']['angles'][:, :16])
+        if self.num_angles == 32:
+            quat_angles_gt = []
+            for a in angles_gt:
+                quat_angles_gt.append(translate_euler_to_quaternion(a))
+            angles_gt = np.array(quat_angles_gt)
         if angles_pred.shape != angles_gt.shape:
             raise ValueError(
                 '`angles_pred` shape should be %s, got %s' % \
