@@ -108,3 +108,5 @@ data/
 logs/
 
 nohup.out
+angle-prediction-results/
+plots/
