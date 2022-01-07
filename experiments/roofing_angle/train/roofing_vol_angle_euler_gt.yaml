@@ -1,4 +1,4 @@
-title: "roofing_vol_angle_gt"
+title: "roofing_vol_angle_euler_gt"
 kind: "mpii"
 vis_freq: 1000
 vis_n_elements: 10
