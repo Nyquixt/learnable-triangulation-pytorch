@@ -302,15 +302,18 @@ def main(args):
         print("Successfully loaded pretrained weights for whole model")
 
     # criterion
-    criterion = nn.MSELoss()
+    if config.opt.criterion == "MSE":
+        criterion = nn.MSELoss()
+    elif config.opt.criterion == "MAE":
+        criterion = nn.L1Loss()
 
     # freeze pretrained weights
     for param in model.parameters():
         param.requires_grad = False
 
     # unfreeze v2v front layers
-    for param in model.volume_net.front_layers.parameters():
-        param.requires_grad = True
+    # for param in model.volume_net.front_layers.parameters():
+    #     param.requires_grad = True
 
     # unfreeze v2v encoder
     for param in model.volume_net.encoder.parameters():

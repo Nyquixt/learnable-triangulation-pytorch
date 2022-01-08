@@ -1,4 +1,4 @@
-title: "roofing_vol_angle_euler_gt"
+title: "roofing_vol_angle_euler_gt_mse"
 kind: "mpii"
 vis_freq: 1000
 vis_n_elements: 10
@@ -6,7 +6,7 @@ vis_n_elements: 10
 image_shape: [256, 256]
 
 opt:
-  criterion: "MAE"
+  criterion: "MSE"
 
   use_volumetric_ce_loss: true
   volumetric_ce_loss_weight: 0.01
