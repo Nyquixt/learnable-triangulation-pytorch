@@ -65,8 +65,8 @@ class Regressor(nn.Module):
 
         self.linear = nn.Linear(in_features, 1024)
         self.relu = nn.ReLU(inplace=True)
-        self.residual_linear1 = ResidualLinear(1024, 1024)
-        self.residual_linear2 = ResidualLinear(1024, 1024)
+        self.residual_linear1 = ResidualLinear(1024)
+        self.residual_linear2 = ResidualLinear(1024)
         self.out = nn.Linear(1024, out_features)
 
     def forward(self, x):
