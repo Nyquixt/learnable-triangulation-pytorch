@@ -32,7 +32,7 @@ def smooth(scalars, weight):  # Weight between 0 and 1
         
     return smoothed
 
-def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness):
+def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness, mode):
     if pred_angles_trajs.shape[1] == 32:
         eulers = []
         for a in pred_angles_trajs:
@@ -59,10 +59,12 @@ def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness):
                 if r < 3:
                     axes[r][c].get_xaxis().set_visible(False)
                 axes[r][c].set_title(angle_names[angle])
+                if mode == 'far':
+                    axes[r][c].set_ylim([-np.pi, np.pi])
                 axes[r][c].plot(smooth(preds_frames[:, angle], smoothness), color='blue')
                 axes[r][c].plot(gt_frames[:, angle], color='red')
         fig.legend(['predicted', 'groundtruth'])
-        plt.savefig("{}_S08_{}.pdf".format(exp_name, i))
+        plt.savefig("{}_{}_S08_{}.pdf".format(exp_name, mode, i))
 
     for i in range(1, 4):
         preds_frames = S10_pred_angles_trajs[S10[i-1] : S10[i]]
@@ -75,10 +77,13 @@ def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness):
                 if r < 3:
                     axes[r][c].get_xaxis().set_visible(False)
                 axes[r][c].set_title(angle_names[angle])
+                if mode == 'far':
+                    axes[r][c].set_ylim([-np.pi, np.pi])
                 axes[r][c].plot(smooth(preds_frames[:, angle], smoothness), color='blue')
                 axes[r][c].plot(gt_frames[:, angle], color='red')
         fig.legend(['predicted', 'groundtruth'])
-        plt.savefig("{}_S10_{}.pdf".format(exp_name, i))
+        
+        plt.savefig("{}_{}_S10_{}.pdf".format(exp_name, mode, i))
 
 if __name__ == '__main__':
     import argparse
@@ -86,6 +91,7 @@ if __name__ == '__main__':
     parser.add_argument('--records', '-r', required=True, type=str, help='prediction records file')
     parser.add_argument('--outfile', '-o', required=True, type=str, help='output file name')
     parser.add_argument('--smooth', '-s', default=0.5, type=float, help='smoothness of plot')
+    parser.add_argument('--mode', '-m', default='far', type=str, choices=['far', 'close'])
     args = parser.parse_args()
 
     labels = np.load('../baseline-angles/roofing-multiview-v2.npy', allow_pickle=True).item()
@@ -106,4 +112,4 @@ if __name__ == '__main__':
         data = pickle.load(infile)
     angles_pred = data['angles']
 
-    main(angles_gt, angles_pred, args.outfile, args.smooth)
+    main(angles_gt, angles_pred, args.outfile, args.smooth, args.mode)

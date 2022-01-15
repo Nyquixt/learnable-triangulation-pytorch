@@ -316,8 +316,8 @@ def main(args):
     #     param.requires_grad = True
 
     # unfreeze v2v encoder
-    for param in model.volume_net.encoder.parameters():
-        param.requires_grad = True
+    # for param in model.volume_net.encoder.parameters():
+    #     param.requires_grad = True
 
     # unfreeze v2v back_layers
     for param in model.volume_net.back_layers.parameters():

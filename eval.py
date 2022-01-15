@@ -21,17 +21,45 @@ angle_names = [
     'elbow_flexion_l'
 ]
 
+angle_names_overview = [
+    'knee_angle',
+    'hip_flexion',
+    'hip_adduction',
+    'hip_rotation',
+    'shoulder_flex',
+    'shoulder_add',
+    'shoulder_rot',
+    'elbow_flexion'
+]
+
+angle_pairs = [
+    (0, 7), (1, 4), (2, 5), (3, 6), 
+    (9, 12), (10, 13), (11, 14), (8, 15)
+]
+
 def main(gt_angles_trajs, pred_angles_trajs):
     if pred_angles_trajs.shape[1] == 32:
         eulers = []
         for a in pred_angles_trajs:
             eulers.append(translate_quaternion_to_euler(list(a)))
         pred_angles_trajs = np.array(eulers)
-    print('Mean Squared Error:')
+    print('<Angle>: <MSE> | <MAE>')
+    maes = []
+    mses = []
 
     for idx, an in enumerate(angle_names):
+        mae = mean_absolute_error(gt_angles_trajs[:, idx], pred_angles_trajs[:, idx])
         mse = mean_squared_error(gt_angles_trajs[:, idx], pred_angles_trajs[:, idx])
-        print(f'{an}: {mse:.3f} rad ({np.rad2deg(mse):.3f} deg)')
+        maes.append(mae)
+        mses.append(mse)
+        print(f'{an}: {mse:.3f} rad ({np.rad2deg(mse):.3f} deg) | {mae:.3f} rad ({np.rad2deg(mae):.3f} deg)')
+
+    print('-------------------')
+    print('Overview')
+    for idx, p in enumerate(angle_pairs):
+        avg_mae = (maes[p[0]] + maes[p[1]]) / 2
+        avg_mse = (mses[p[0]] + mses[p[1]]) / 2
+        print(f'{angle_names_overview[idx]}: {avg_mse:.3f} rad ({np.rad2deg(avg_mse):.3f} deg) | {avg_mae:.3f} rad ({np.rad2deg(avg_mae):.3f} deg)')
 
     print('-------------------')
     print('Average:')
