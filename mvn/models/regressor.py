@@ -82,8 +82,10 @@ class ResidualLinear(nn.Module):
 
         self.layers = nn.Sequential(
             nn.Linear(features, 1024),
+            nn.BatchNorm1d(1024),
             nn.ReLU(inplace=True),
             nn.Linear(1024, features),
+            nn.BatchNorm1d(features),
             nn.ReLU(inplace=True),
         )
 
