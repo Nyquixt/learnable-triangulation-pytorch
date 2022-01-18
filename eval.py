@@ -52,14 +52,14 @@ def main(gt_angles_trajs, pred_angles_trajs):
         mse = mean_squared_error(gt_angles_trajs[:, idx], pred_angles_trajs[:, idx])
         maes.append(mae)
         mses.append(mse)
-        print(f'{an}: {mse:.3f} rad ({np.rad2deg(mse):.3f} deg) | {mae:.3f} rad ({np.rad2deg(mae):.3f} deg)')
+        print(f'{an}: {mse:.3f} rad | {mae:.3f} rad ({np.rad2deg(mae):.3f} deg)')
 
     print('-------------------')
     print('Overview')
     for idx, p in enumerate(angle_pairs):
         avg_mae = (maes[p[0]] + maes[p[1]]) / 2
         avg_mse = (mses[p[0]] + mses[p[1]]) / 2
-        print(f'{angle_names_overview[idx]}: {avg_mse:.3f} rad ({np.rad2deg(avg_mse):.3f} deg) | {avg_mae:.3f} rad ({np.rad2deg(avg_mae):.3f} deg)')
+        print(f'{angle_names_overview[idx]}: {avg_mse:.3f} rad | {avg_mae:.3f} rad ({np.rad2deg(avg_mae):.3f} deg)')
 
     print('-------------------')
     print('Average:')
@@ -67,7 +67,7 @@ def main(gt_angles_trajs, pred_angles_trajs):
     mse = mean_squared_error(gt_angles_trajs, pred_angles_trajs)
     r2 = r2_score(gt_angles_trajs, pred_angles_trajs)
     print(f'MAE: {mae} rad ({np.rad2deg(mae):.3f} deg)')
-    print(f'MSE: {mse} rad ({np.rad2deg(mse):.3f} deg)')
+    print(f'MSE: {mse} rad')
     print(f'R2: {r2}')
 
 if __name__ == '__main__':
