@@ -311,7 +311,7 @@ def main(args):
     for param in model.parameters():
         param.requires_grad = False
 
-    # unfreeze lifing model
+    # unfreeze lifting model
     for param in model.regressor.parameters():
         param.requires_grad = True
 
@@ -335,7 +335,7 @@ def main(args):
     if is_distributed:
         model = DistributedDataParallel(model, device_ids=[device])
 
-    # torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
 
     if not args.eval:
         # train loop
