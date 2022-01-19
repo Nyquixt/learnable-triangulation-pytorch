@@ -33,6 +33,7 @@ def smooth(scalars, weight):  # Weight between 0 and 1
     return smoothed
 
 def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness, mode):
+    y_min, y_max = np.min(gt_angles_trajs), np.max(gt_angles_trajs)
     if pred_angles_trajs.shape[1] == 32:
         eulers = []
         for a in pred_angles_trajs:
@@ -60,7 +61,7 @@ def main(gt_angles_trajs, pred_angles_trajs, exp_name, smoothness, mode):
                     axes[r][c].get_xaxis().set_visible(False)
                 axes[r][c].set_title(angle_names[angle])
                 if mode == 'far':
-                    axes[r][c].set_ylim([-np.pi, np.pi])
+                    axes[r][c].set_ylim([y_min, y_max])
                 axes[r][c].plot(smooth(preds_frames[:, angle], smoothness), color='blue')
                 axes[r][c].plot(gt_frames[:, angle], color='red')
         fig.legend(['predicted', 'groundtruth'])
