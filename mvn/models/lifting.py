@@ -211,7 +211,12 @@ class VolumetricAngleLifter(nn.Module): # lifing from 3D joint heatmaps to angle
         volumes = op.unproject_heatmaps(features, proj_matricies, coord_volumes, volume_aggregation_method=self.volume_aggregation_method, vol_confidences=vol_confidences)
 
         # integral 3d
-        output = self.volume_net(volumes) # B,N,64,64,64
+        heatmaps = self.volume_net(volumes) # B,N,64,64,64
+        # apply softmax
+        batch_size, n_volumes, x_size, y_size, z_size = heatmaps.shape
+        heatmaps = heatmaps.reshape((batch_size, n_volumes, -1))
+        heatmaps = F.softmax(heatmaps, dim=2)
+        heatmaps = heatmaps.reshape((batch_size, n_volumes, x_size, y_size, z_size))
         # lifting model
-        output = self.regressor(output) 
+        output = self.regressor(heatmaps)
         return output

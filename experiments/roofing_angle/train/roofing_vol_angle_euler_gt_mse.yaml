@@ -17,12 +17,12 @@ opt:
   batch_size: 4
   val_batch_size: 2
 
-  lr: 0.001
+  lr: 0.0001
   process_features_lr: 0.001
   volume_net_lr: 0.001
 
   schedule: [10, 20]
-  gamma: 0.1
+  gamma: 0.05
 
   angle_type: "euler"
 
