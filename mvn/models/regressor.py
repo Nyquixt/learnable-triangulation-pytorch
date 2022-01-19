@@ -288,6 +288,9 @@ class VolumetricAngleRegressor(nn.Module):
 
         # integral 3d
         output = self.volume_net(volumes)
+        if self.num_angles == 32: # normalize to unit quaternion
+            output = output.view(-1, 8, 4)
+            output = F.normalize(output, dim=2).view(-1, 32)
 
         return output
 
