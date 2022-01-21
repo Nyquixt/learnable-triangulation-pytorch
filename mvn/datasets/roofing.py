@@ -70,8 +70,8 @@ class RoofingMultiViewDataset(Dataset):
         n_cameras = len(self.labels['camera_names'])
         assert all(camera_idx in range(n_cameras) for camera_idx in self.ignore_cameras)
 
-        train_subjects = ['S04', 'S05', 'S06', 'S07', 'S09']
-        test_subjects = ['S08', 'S10']
+        train_subjects = ['S04', 'S05', 'S06', 'S07', 'S08', 'S09']
+        test_subjects = ['S10']
 
         train_subjects = list(self.labels['subject_names'].index(x) for x in train_subjects)
         test_subjects  = list(self.labels['subject_names'].index(x) for x in test_subjects)
