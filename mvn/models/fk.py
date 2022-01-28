@@ -289,7 +289,7 @@ class VolumetricAngleRegressor(nn.Module):
         rotations = rotations.view(-1, self.num_joints, 4)
         normalized = F.normalize(rotations, dim=2).view(rotations.shape) # normalize quaternions to get unit quaternions
 
-        keypoints_pred = skeleton.forward_kinematics(normalized, base_point)
+        keypoints_pred = skeleton.forward_kinematics(normalized, base_points)
 
         return keypoints_pred
 
