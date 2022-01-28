@@ -203,7 +203,7 @@ def load_MOT_angles(mot_path):
                 rotations.append([0., 0., 0.])
         rotations_by_frames.append(rotations)
 
-    translations_by_frames = np.array(translations_by_frames, dtype=np.float64)
+    translations_by_frames = np.array(translations_by_frames, dtype=np.float64) * 1000 # m to mm
     rotations_by_frames = np.array(rotations_by_frames, dtype=np.float32)
 
     # handle hip_l, shoulder_l, elbow_r, elbow_l rotation axes due to some subtle details in .osim model
