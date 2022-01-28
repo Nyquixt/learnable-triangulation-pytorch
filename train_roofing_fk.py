@@ -305,24 +305,16 @@ def main(args):
     elif config.opt.criterion == "MAE":
         criterion = nn.L1Loss()
 
-    # freeze pretrained weights
+    # freeze pretrained weights of backbone
     for param in model.parameters():
         param.requires_grad = False
 
-    # unfreeze v2v front layers
-    # for param in model.volume_net.front_layers.parameters():
-    #     param.requires_grad = True
-
-    # unfreeze v2v encoder
-    for param in model.volume_net.encoder.parameters():
+    # unfreeze backbone final layer
+    for param in model.backbone.final_layer.parameters():
         param.requires_grad = True
 
-    # unfreeze v2v back_layers
-    for param in model.volume_net.back_layers.parameters():
-        param.requires_grad = True
-
-    # unfreeze regressor head
-    for param in model.volume_net.regressor.parameters():
+    # unfreeze v2v
+    for param in model.volume_net.parameters():
         param.requires_grad = True
 
     # optimizer
