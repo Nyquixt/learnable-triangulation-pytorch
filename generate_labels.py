@@ -136,7 +136,7 @@ def load_STO_locations(sto_path):
         data = lines[5:]
         
     npy_data = []
-    for frame_idx in len(data):
+    for frame_idx in range(len(data)):
         frame = data[frame_idx].split()
         instances = []
         for it in frame:
