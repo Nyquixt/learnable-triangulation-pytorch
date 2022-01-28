@@ -62,9 +62,12 @@ def prepare_batch(batch, device):
     translations_gt = torch.from_numpy(np.stack(batch['translations'], axis=0)).float().to(device)
     
     # 3D rotations
-    rotations_gt = torch.from_numpy(
-        R.from_euler('ZXY', np.stack(batch['rotations'], axis=0), degrees=True).as_quat()[:, :, [3, 0, 1, 2]]
-    ).float().to(device)
+    rotations_gt = []
+    for r in batch['rotations']:
+        rotations_gt.append(
+            R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
+    rotations_gt = np.stack(rotations_gt, axis=0)
+    rotations_gt = torch.from_numpy(rotations_gt).float().to(device)
 
     # projection matricies
     proj_matricies_batch = torch.stack([torch.stack([torch.from_numpy(camera.projection) for camera in camera_batch], dim=0) for camera_batch in batch['cameras']], dim=0).transpose(1, 0)  # shape (batch_size, n_views, 3, 4)
