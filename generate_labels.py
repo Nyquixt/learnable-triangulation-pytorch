@@ -319,7 +319,7 @@ def generate_table(coords_sto_path, angles_mot_path, sub, act, cam_param, error_
                        ('frame_idx', np.int32, (1)),
                        ('keypoints', np.float32, (14, 3)),
                        ('translations', np.float32, (3,)),
-                       ('rotations', np.float32, (14, 3))
+                       ('rotations', np.float32, (14, 3)),
                        ('bbox_by_camera_tlbr', np.int32, (3, 4))
                     ])
         # main data format of npy['table']
