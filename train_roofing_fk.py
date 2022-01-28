@@ -355,7 +355,8 @@ def main(args):
                 [  -8.53615171, -228.84785207,  -13.20643682]],
         parents=[-1, 0, 1, 2, 0, 4, 5, 0, 7, 8, 9, 7, 11, 12],
         joints_left=[4, 5, 6, 11, 12, 13],
-        joints_right = [1, 2, 3, 8, 9, 10]
+        joints_right = [1, 2, 3, 8, 9, 10],
+        device=device
     )
 
     if not args.eval:

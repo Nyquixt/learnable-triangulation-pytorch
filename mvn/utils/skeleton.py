@@ -10,10 +10,10 @@ import numpy as np
 from mvn.utils.quaternion import qmul_np, qmul, qrot
 
 class Skeleton:
-    def __init__(self, offsets, parents, joints_left=None, joints_right=None):
+    def __init__(self, offsets, parents, joints_left=None, joints_right=None, device='cuda:0'):
         assert len(offsets) == len(parents)
         
-        self._offsets = torch.FloatTensor(offsets)
+        self._offsets = torch.FloatTensor(offsets).to(device)
         self._parents = np.array(parents)
         self._joints_left = joints_left
         self._joints_right = joints_right
