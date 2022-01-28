@@ -179,7 +179,7 @@ def one_epoch(model, skeleton, criterion, opt, config, dataloader, device, epoch
                 print("Found None batch")
                 continue
 
-            images_batch, keypoints_3d_batch_gt, _, _, proj_matricies_batch = dataset_utils.prepare_batch(batch, device, config)
+            images_batch, keypoints_3d_batch_gt, _, _, proj_matricies_batch = dataset_utils.prepare_batch(batch, device)
 
             keypoints_pred = model(images_batch, proj_matricies_batch, skeleton, batch)
 
