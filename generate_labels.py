@@ -359,10 +359,10 @@ def check_video(path1, path2, path3):
 
 def main():
     save_path = "roofing-multiview-fk"
-    src_data_path = "/home/kien/data/Roof_Phase3/"
-    coords_sto_path = "/home/kien/data/Roof_Phase3/keypoint_gt/"
-    angles_mot_path = "/home/kien/data/Roof_Phase3/angle_gt/"
-    osim_file_path = "/home/kien/data/Roof_Phase3/osim_file/"
+    src_data_path = "/data/kien/Roof_Phase3/"
+    coords_sto_path = "/data/kien/Roof_Phase3/keypoint_gt/"
+    angles_mot_path = "/data/kien/Roof_Phase3/angle_gt/"
+    osim_file_path = "/data/kien/Roof_Phase3/osim_file/"
 
     data = {}
     data['subject_names'] = ['S04','S05','S06','S07','S08','S09','S10']
