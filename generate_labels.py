@@ -401,13 +401,12 @@ def main():
         for cam in range(3):
             data['cameras'][sub][cam] = load_camera_param(sub, cam, src_data_path + "Subject04_10-03-2019/Trial 2" + str(act + 7) + ".xcp")
         
-        offsets = load_model_offsets(osim_file_path + "model_S04_scaled.osim", sub)
-        data['offsets'].append(offsets)
-        
         data['table'] += generate_table(coords_sto_path + "S04_" + str(act + 1) + "_OutputsVec3.sto",
                                         angles_mot_path + "S04_" + str(act + 1) + "_IK_Result.mot",
                                         sub, act, data['cameras'][sub], error_frame)
-    
+    offsets = load_model_offsets(osim_file_path + "model_S04_scaled.osim", sub)
+    data['offsets'].append(offsets)
+
     sub = 1
     for act in range(3):
         if act == 0:
@@ -428,12 +427,11 @@ def main():
         for cam in range(3):
             data['cameras'][sub][cam] = load_camera_param(sub, cam, src_data_path + "Subject05_10-07-2019/Trial 1" + str(act + 1) + ".xcp")
         
-        offsets = load_model_offsets(osim_file_path + "model_S05_scaled.osim", sub)
-        data['offsets'].append(offsets)
-        
         data['table'] += generate_table(coords_sto_path + "S05_" + str(act + 1) + "_OutputsVec3.sto",
                                         angles_mot_path + "S05_" + str(act + 1) + "_IK_Result.mot",
                                         sub, act, data['cameras'][sub], error_frame)
+    offsets = load_model_offsets(osim_file_path + "model_S05_scaled.osim", sub)
+    data['offsets'].append(offsets)
     
     sub = 2
     for act in range(3):
@@ -455,13 +453,13 @@ def main():
         for cam in range(3):
             data['cameras'][sub][cam] = load_camera_param(sub, cam, src_data_path + "Subject06_10-08-2019/Trial 2" + str(act + 1) + ".xcp")
         
-        offsets = load_model_offsets(osim_file_path + "model_S06_scaled.osim", sub)
-        data['offsets'].append(offsets)
-        
         data['table'] += generate_table(coords_sto_path + "S06_" + str(act + 1) + "_OutputsVec3.sto",
                                         angles_mot_path + "S06_" + str(act + 1) + "_IK_Result.mot",
                                         sub, act, data['cameras'][sub], error_frame)
     
+    offsets = load_model_offsets(osim_file_path + "model_S06_scaled.osim", sub)
+    data['offsets'].append(offsets)
+
     sub = 3
     for act in range(3):
         if act == 0:
@@ -482,13 +480,13 @@ def main():
         for cam in range(3):
             data['cameras'][sub][cam] = load_camera_param(sub, cam, src_data_path + "Subject07_10-09-2019/Trial 2" + str(act + 1) + ".xcp")
         
-        offsets = load_model_offsets(osim_file_path + "model_S07_scaled.osim", sub)
-        data['offsets'].append(offsets)
-        
         data['table'] += generate_table(coords_sto_path + "S07_" + str(act + 1) + "_OutputsVec3.sto",
                                         angles_mot_path + "S07_" + str(act + 1) + "_IK_Result.mot",
                                         sub, act, data['cameras'][sub], error_frame)
     
+    offsets = load_model_offsets(osim_file_path + "model_S07_scaled.osim", sub)
+    data['offsets'].append(offsets)
+
     sub = 4
     for act in range(3):
         if act == 0:
@@ -509,13 +507,12 @@ def main():
         for cam in range(3):
             data['cameras'][sub][cam] = load_camera_param(sub, cam, src_data_path + "Subject08_10-09-2019/Trial 3" + str(act + 1) + ".xcp")
         
-        offsets = load_model_offsets(osim_file_path + "model_S08_scaled.osim", sub)
-        data['offsets'].append(offsets)
-        
         data['table'] += generate_table(coords_sto_path + "S08_" + str(act + 1) + "_OutputsVec3.sto",
                                         angles_mot_path + "S08_" + str(act + 1) + "_IK_Result.mot",
                                         sub, act, data['cameras'][sub], error_frame)
-    
+    offsets = load_model_offsets(osim_file_path + "model_S08_scaled.osim", sub)
+    data['offsets'].append(offsets)
+
     sub = 5
     for act in range(3):
         if act == 0:
@@ -536,12 +533,12 @@ def main():
         for cam in range(3):
             data['cameras'][sub][cam] = load_camera_param(sub, cam, src_data_path + "Subject09_10-11-2019/Trial 1" + str(act + 1) + ".xcp")
         
-        offsets = load_model_offsets(osim_file_path + "model_S09_scaled.osim", sub)
-        data['offsets'].append(offsets)
-        
         data['table'] += generate_table(coords_sto_path + "S09_" + str(act + 1) + "_OutputsVec3.sto",
                                         angles_mot_path + "S09_" + str(act + 1) + "_IK_Result.mot",
                                         sub, act, data['cameras'][sub], error_frame)
+    
+    offsets = load_model_offsets(osim_file_path + "model_S09_scaled.osim", sub)
+    data['offsets'].append(offsets)
 
     sub = 6
     for act in range(3):
@@ -563,17 +560,17 @@ def main():
         for cam in range(3):
             data['cameras'][sub][cam] = load_camera_param(sub, cam , src_data_path + "Subject10_10-16-2019/Trial 3" + str(act + 1) + ".xcp")
         
-        offsets = load_model_offsets(osim_file_path + "model_S10_scaled.osim", sub)
-        data['offsets'].append(offsets)
-        
         data['table'] += generate_table(coords_sto_path + "S10_" + str(act + 1) + "_OutputsVec3.sto",
                                         angles_mot_path + "S10_" + str(act + 1) + "_IK_Result.mot",
                                         sub, act , data['cameras'][sub], error_frame)
     
+    offsets = load_model_offsets(osim_file_path + "model_S10_scaled.osim", sub)
+    data['offsets'].append(offsets)
+
     data['cameras'] = np.array(data['cameras'])
     data['offsets'] = np.array(data['offsets'])
     data['table'] = np.array(data['table'])
-    print(data['table'].shape)
+    print(f"Number of frame: {data['table'].shape[0]}")
     
     np.save(save_path, data)
 
