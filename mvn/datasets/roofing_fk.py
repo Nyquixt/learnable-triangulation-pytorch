@@ -27,7 +27,6 @@ class RoofingMultiViewDataset(Dataset):
                  kind="mpii",
                  ignore_cameras=[],
                  crop=True,
-                 angle_type="euler"
                  ):
         """
             roofing_root:
@@ -58,7 +57,6 @@ class RoofingMultiViewDataset(Dataset):
         self.kind = kind
         self.ignore_cameras = ignore_cameras
         self.crop = crop
-        self.angle_type = angle_type
 
         self.labels = np.load(labels_path, allow_pickle=True).item()
 

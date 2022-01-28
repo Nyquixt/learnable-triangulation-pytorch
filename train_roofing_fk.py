@@ -21,8 +21,8 @@ from tensorboardX import SummaryWriter
 from mvn.models.fk import VolumetricAngleRegressor
 
 from mvn.utils import misc, cfg
-from mvn.datasets import roofing
-from mvn.datasets import utils_angle as dataset_utils
+from mvn.datasets import roofing_fk
+from mvn.datasets import utils_fk as dataset_utils
 from mvn.utils.skeleton import Skeleton
 
 def adjust_learning_rate(optimizer, epoch, lr, schedule, gamma):
@@ -53,7 +53,7 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
     train_dataloader = None
     if is_train:
         # train
-        train_dataset = roofing.RoofingMultiViewDataset(
+        train_dataset = roofing_fk.RoofingMultiViewDataset(
             roofing_root=config.dataset.train.roofing_root,
             pred_results_path=config.dataset.train.pred_results_path if hasattr(config.dataset.train, "pred_results_path") else None,
             train=True,
@@ -64,7 +64,6 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
             kind=config.kind,
             ignore_cameras=config.dataset.train.ignore_cameras if hasattr(config.dataset.train, "ignore_cameras") else [],
             crop=config.dataset.train.crop if hasattr(config.dataset.train, "crop") else True,
-            angle_type=config.opt.angle_type
         )
 
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if distributed_train else None
@@ -83,7 +82,7 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
         )
 
     # val
-    val_dataset = roofing.RoofingMultiViewDataset(
+    val_dataset = roofing_fk.RoofingMultiViewDataset(
         roofing_root=config.dataset.val.roofing_root,
         pred_results_path=config.dataset.val.pred_results_path if hasattr(config.dataset.val, "pred_results_path") else None,
         train=False,
@@ -95,7 +94,6 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
         kind=config.kind,
         ignore_cameras=config.dataset.val.ignore_cameras if hasattr(config.dataset.val, "ignore_cameras") else [],
         crop=config.dataset.val.crop if hasattr(config.dataset.val, "crop") else True,
-        angle_type=config.opt.angle_type
     )
 
     val_dataloader = DataLoader(
