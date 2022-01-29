@@ -309,6 +309,10 @@ def main(args):
     for param in model.parameters():
         param.requires_grad = False
 
+    # unfreeze process_feature layer
+    for param in model.process_features.parameters():
+        param.requires_grad = True
+
     # unfreeze backbone final layer
     for param in model.backbone.final_layer.parameters():
         param.requires_grad = True
