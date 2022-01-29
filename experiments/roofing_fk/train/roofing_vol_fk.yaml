@@ -6,7 +6,7 @@ vis_n_elements: 10
 image_shape: [384, 384]
 
 opt:
-  criterion: "MAE"
+  criterion: "MSESmooth"
 
   use_volumetric_ce_loss: true
   volumetric_ce_loss_weight: 0.01

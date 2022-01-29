@@ -19,6 +19,7 @@ from torch.nn.parallel import DistributedDataParallel
 from tensorboardX import SummaryWriter
 
 from mvn.models.fk import VolumetricAngleRegressor
+from mvn.models.loss import KeypointsMSELoss, KeypointsMSESmoothLoss, KeypointsMAELoss
 
 from mvn.utils import misc, cfg
 from mvn.datasets import roofing_fk
@@ -179,15 +180,15 @@ def one_epoch(model, skeleton, criterion, opt, config, dataloader, device, epoch
                 print("Found None batch")
                 continue
 
-            images_batch, keypoints_3d_batch_gt, _, _, proj_matricies_batch = dataset_utils.prepare_batch(batch, device)
+            images_batch, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt, _, _, proj_matricies_batch = dataset_utils.prepare_batch(batch, device)
 
             keypoints_pred = model(images_batch, proj_matricies_batch, skeleton, batch)
 
             # calculate loss
             total_loss = 0.0
-            loss = criterion(keypoints_pred, keypoints_3d_batch_gt)
+            loss = criterion(keypoints_pred, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt)
             total_loss += loss
-            metric_dict['MSELoss'].append(loss.item())
+            metric_dict['loss'].append(loss.item())
             metric_dict['total_loss'].append(total_loss.item())
 
             if is_train:
@@ -301,9 +302,11 @@ def main(args):
 
     # criterion
     if config.opt.criterion == "MSE":
-        criterion = nn.MSELoss()
+        criterion = KeypointsMSELoss()
+    elif config.opt.criterion == "MSESmooth":
+        criterion = KeypointsMSESmoothLoss()
     elif config.opt.criterion == "MAE":
-        criterion = nn.L1Loss()
+        criterion = KeypointsMAELoss()
 
     # freeze pretrained weights of backbone
     for param in model.parameters():
