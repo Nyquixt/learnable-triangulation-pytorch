@@ -196,101 +196,35 @@ def render_points_as_2d_gaussians(points, sigmas, image_shape, normalize=True):
 
     return images
 
-def euler_to_quaternion(roll, pitch, yaw):
-    # https://automaticaddison.com/how-to-convert-euler-angles-to-quaternions-using-python/
-    """
-    Convert an Euler angle to a quaternion.
+def draw_labelmap(img, pt, sigma=1.0, type='Gaussian'):
+    # Draw a 2D gaussian
+    # Adopted from https://github.com/anewell/pose-hg-train/blob/master/src/pypose/draw.py
 
-    Input
-    :param roll: The roll (rotation around x-axis) angle in radians.
-    :param pitch: The pitch (rotation around y-axis) angle in radians.
-    :param yaw: The yaw (rotation around z-axis) angle in radians.
+    # Check that any part of the gaussian is in-bounds
+    ul = [int(pt[0] - 3 * sigma), int(pt[1] - 3 * sigma)]
+    br = [int(pt[0] + 3 * sigma + 1), int(pt[1] + 3 * sigma + 1)]
+    if (ul[0] >= img.shape[1] or ul[1] >= img.shape[0] or
+            br[0] < 0 or br[1] < 0):
+        # If not, just return the image as is
+        return to_torch(img), 0
 
-    Output
-    :return qx, qy, qz, qw: The orientation in quaternion [x,y,z,w] format
-    """
-    qx = math.sin(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) - math.cos(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
-    qy = math.cos(roll/2) * math.sin(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.cos(pitch/2) * math.sin(yaw/2)
-    qz = math.cos(roll/2) * math.cos(pitch/2) * math.sin(yaw/2) - math.sin(roll/2) * math.sin(pitch/2) * math.cos(yaw/2)
-    qw = math.cos(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
+    # Generate gaussian
+    size = 6 * sigma + 1
+    x = np.arange(0, size, 1, float)
+    y = x[:, np.newaxis]
+    x0 = y0 = size // 2
+    # The gaussian is not normalized, we want the center value to equal 1
+    if type == 'Gaussian':
+        g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
+    elif type == 'Cauchy':
+        g = sigma / (((x - x0) ** 2 + (y - y0) ** 2 + sigma ** 2) ** 1.5)
 
-    return [qx, qy, qz, qw]
+    # Usable gaussian range
+    g_x = max(0, -ul[0]), min(br[0], img.shape[1]) - ul[0]
+    g_y = max(0, -ul[1]), min(br[1], img.shape[0]) - ul[1]
+    # Image range
+    img_x = max(0, ul[0]), min(br[0], img.shape[1])
+    img_y = max(0, ul[1]), min(br[1], img.shape[0])
 
-def quaternion_to_euler(x, y, z, w):
-    # https://automaticaddison.com/how-to-convert-a-quaternion-into-euler-angles-in-python/
-    """
-    Convert a quaternion into euler angles (roll, pitch, yaw)
-    roll is rotation around x in radians (counterclockwise)
-    pitch is rotation around y in radians (counterclockwise)
-    yaw is rotation around z in radians (counterclockwise)
-    """
-    t0 = +2.0 * (w * x + y * z)
-    t1 = +1.0 - 2.0 * (x * x + y * y)
-    roll_x = math.atan2(t0, t1)
-    
-    t2 = +2.0 * (w * y - z * x)
-    t2 = +1.0 if t2 > +1.0 else t2
-    t2 = -1.0 if t2 < -1.0 else t2
-    pitch_y = math.asin(t2)
-    
-    t3 = +2.0 * (w * z + x * y)
-    t4 = +1.0 - 2.0 * (y * y + z * z)
-    yaw_z = math.atan2(t3, t4)
-    
-    return roll_x, pitch_y, yaw_z # in radians
-
-def translate_euler_to_quaternion(angles):
-    '''
-    Input:
-        eulers: 16 items
-
-    Output:
-        quaternions: 8 x 4 = 32 items
-    '''
-
-    assert len(angles) == 16
-
-    knee_r = euler_to_quaternion(0.0, 0.0, angles[0])
-    hip_r = euler_to_quaternion(angles[2], angles[3], angles[1])
-    hip_l = euler_to_quaternion(angles[5], angles[6], angles[4])
-    knee_l = euler_to_quaternion(0.0, 0.0, angles[7])
-
-    elbow_r = euler_to_quaternion(0.0, 0.0, angles[8])
-    shoulder_r = euler_to_quaternion(angles[10], angles[11], angles[9])
-    shoulder_l = euler_to_quaternion(angles[13], angles[14], angles[12])
-    elbow_l = euler_to_quaternion(0.0, 0.0, angles[15])
-
-    all = knee_r + hip_r + hip_l + knee_l + elbow_r + shoulder_r + shoulder_l + elbow_l
-    return np.array(all)
-
-def translate_quaternion_to_euler(quaternions):
-    '''
-    Input:
-        quaternions: 8 x 4 = 32 items
-    
-    Output:
-        eulers: 16 items
-    '''
-
-    _, _, knee_r = quaternion_to_euler(*quaternions[:4])
-    hip_adduction_r, hip_rotation_r, hip_flexion_r = quaternion_to_euler(*quaternions[4:8])
-    hip_adduction_l, hip_rotation_l, hip_flexion_l = quaternion_to_euler(*quaternions[8:12])
-    _, _, knee_l = quaternion_to_euler(*quaternions[12:16])
-
-    _, _, elbow_r = quaternion_to_euler(*quaternions[16:20])
-    shoulder_adduction_r, shoulder_rotation_r, shoulder_flexion_r = quaternion_to_euler(*quaternions[20:24])
-    shoulder_adduction_l, shoulder_rotation_l, shoulder_flexion_l = quaternion_to_euler(*quaternions[24:28])
-    _, _, elbow_l = quaternion_to_euler(*quaternions[28:])
-
-    all = [
-        knee_r,
-        hip_flexion_r, hip_adduction_r, hip_rotation_r,
-        hip_flexion_l, hip_adduction_l, hip_rotation_l,
-        knee_l,
-        elbow_r,
-        shoulder_flexion_r, shoulder_adduction_r, shoulder_rotation_r,
-        shoulder_flexion_l, shoulder_adduction_l, shoulder_rotation_l,
-        elbow_l
-    ]
-
-    return all
+    img[img_y[0]:img_y[1], img_x[0]:img_x[1]] = g[g_y[0]:g_y[1], g_x[0]:g_x[1]]
+    return img, 1

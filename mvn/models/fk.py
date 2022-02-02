@@ -43,56 +43,56 @@ class Encoder(nn.Module):
 
         return x
 
-# class Regressor(nn.Module):
-#     def __init__(self, in_features, out_features):
-#         super().__init__()
-
-#         self.fc1 = nn.Linear(in_features, 1024)
-#         self.fc2 = nn.Linear(1024, out_features)
-
-#         self.bn = nn.BatchNorm1d(1024)
-
-#     def forward(self, x):
-#         x = self.bn(self.fc1(x))
-#         x = F.relu(x)
-#         x = self.fc2(x)
-        
-#         return x
-
 class Regressor(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()
 
-        self.linear = nn.Linear(in_features, 1024)
-        self.relu = nn.ReLU(inplace=True)
-        self.residual_linear1 = ResidualLinear(1024)
-        self.residual_linear2 = ResidualLinear(1024)
-        self.out = nn.Linear(1024, out_features)
+        self.fc1 = nn.Linear(in_features, 1024)
+        self.fc2 = nn.Linear(1024, out_features)
+
+        self.bn = nn.BatchNorm1d(1024)
 
     def forward(self, x):
-        x = self.relu(self.linear(x))
-        x = self.residual_linear1(x)
-        x = self.residual_linear2(x)
-        x = self.out(x)
+        x = self.bn(self.fc1(x))
+        x = F.relu(x)
+        x = self.fc2(x)
+        
         return x
 
-class ResidualLinear(nn.Module):
-    def __init__(self, features):
-        super().__init__()
+# class Regressor(nn.Module):
+#     def __init__(self, in_features, out_features):
+#         super().__init__()
 
-        self.layers = nn.Sequential(
-            nn.Linear(features, 1024),
-            nn.BatchNorm1d(1024),
-            nn.ReLU(inplace=True),
-            nn.Linear(1024, features),
-            nn.BatchNorm1d(features),
-            nn.ReLU(inplace=True),
-        )
+#         self.linear = nn.Linear(in_features, 1024)
+#         self.relu = nn.ReLU(inplace=True)
+#         self.residual_linear1 = ResidualLinear(1024)
+#         self.residual_linear2 = ResidualLinear(1024)
+#         self.out = nn.Linear(1024, out_features)
 
-    def forward(self, x):
-        z = self.layers(x)
-        out = z + x
-        return out
+#     def forward(self, x):
+#         x = self.relu(self.linear(x))
+#         x = self.residual_linear1(x)
+#         x = self.residual_linear2(x)
+#         x = self.out(x)
+#         return x
+
+# class ResidualLinear(nn.Module):
+#     def __init__(self, features):
+#         super().__init__()
+
+#         self.layers = nn.Sequential(
+#             nn.Linear(features, 1024),
+#             nn.BatchNorm1d(1024),
+#             nn.ReLU(inplace=True),
+#             nn.Linear(1024, features),
+#             nn.BatchNorm1d(features),
+#             nn.ReLU(inplace=True),
+#         )
+
+#     def forward(self, x):
+#         z = self.layers(x)
+#         out = z + x
+#         return out
 
 class V2VRegressor(nn.Module):
     def __init__(self, input_channels, output_features):
@@ -290,8 +290,9 @@ class VolumetricAngleRegressor(nn.Module):
         normalized = F.normalize(rotations, dim=2).view(rotations.shape) # normalize quaternions to get unit quaternions
 
         keypoints_pred = skeleton.forward_kinematics(normalized, base_points)
+        print(heatmaps.shape)
 
-        return keypoints_pred
+        return heatmaps, keypoints_pred, normalized
 
 if __name__ == '__main__':
     regressor = V2VRegressor(64, 16)

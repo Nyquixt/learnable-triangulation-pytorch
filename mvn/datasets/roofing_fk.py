@@ -5,9 +5,9 @@ import numpy as np
 import cv2
 from torch.utils.data import Dataset
 
-from mvn.utils.multiview import Camera
+from mvn.utils.multiview import Camera, project_3d_points_to_image_plane_without_distortion
 from mvn.utils.img import resize_image, crop_image, normalize_image, scale_bbox
-from mvn.utils.op import translate_euler_to_quaternion
+from mvn.utils.op import draw_labelmap
 
 class RoofingMultiViewDataset(Dataset):
     """
@@ -27,6 +27,7 @@ class RoofingMultiViewDataset(Dataset):
                  kind="mpii",
                  ignore_cameras=[],
                  crop=True,
+                 heatmap_res = 96
                  ):
         """
             roofing_root:
@@ -57,6 +58,7 @@ class RoofingMultiViewDataset(Dataset):
         self.kind = kind
         self.ignore_cameras = ignore_cameras
         self.crop = crop
+        self.heatmap_res = heatmap_res
 
         self.labels = np.load(labels_path, allow_pickle=True).item()
 
@@ -148,6 +150,17 @@ class RoofingMultiViewDataset(Dataset):
             sample['cameras'].append(retval_camera)
             sample['proj_matrices'].append(retval_camera.projection)
 
+            # 2D keypoints
+            keypoints_2d = project_3d_points_to_image_plane_without_distortion(retval_camera.projection, shot['keypoints'])
+            # resize once again down to heatmap resolution
+            kpt2d = keypoints_2d / self.image_shape[0] * self.heatmap_res
+            n_joints, _ = kpt2d.shape
+            kpt2d_heatmap = np.zeros((n_joints, self.heatmap_res, self.heatmap_res))
+            for i in range(n_joints):
+                kpt2d_heatmap[i], _ = draw_labelmap(kpt2d_heatmap[i], kpt2d[i], sigma=1, type='Gaussian')
+
+            sample['heatmaps_2d'].append(kpt2d_heatmap)
+
         # 3D keypoints
         # add dummy confidences
         sample['keypoints_3d'] = np.pad(
@@ -232,8 +245,8 @@ class RoofingMultiViewDataset(Dataset):
         # relative mean error per 14 joints in mm, for each pose
         root_index = 0
 
-        keypoints_gt_relative = keypoints_gt - keypoints_gt[:, root_index:root_index + 1, :]
-        keypoints_3d_predicted_relative = keypoints_3d_predicted - keypoints_3d_predicted[:, root_index:root_index + 1, :]
+        keypoints_gt_relative = keypoints_gt - keypoints_gt[:, root_index, :]
+        keypoints_3d_predicted_relative = keypoints_3d_predicted - keypoints_3d_predicted[:, root_index, :]
 
         per_pose_error_relative = np.sqrt(((keypoints_gt_relative - keypoints_3d_predicted_relative) ** 2).sum(2)).mean(1)
 
