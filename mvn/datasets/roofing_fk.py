@@ -245,8 +245,8 @@ class RoofingMultiViewDataset(Dataset):
         # relative mean error per 14 joints in mm, for each pose
         root_index = 0
 
-        keypoints_gt_relative = keypoints_gt - keypoints_gt[:, root_index, :]
-        keypoints_3d_predicted_relative = keypoints_3d_predicted - keypoints_3d_predicted[:, root_index, :]
+        keypoints_gt_relative = keypoints_gt - keypoints_gt[:, root_index:root_index + 1, :]
+        keypoints_3d_predicted_relative = keypoints_3d_predicted - keypoints_3d_predicted[:, root_index:root_index + 1, :]
 
         per_pose_error_relative = np.sqrt(((keypoints_gt_relative - keypoints_3d_predicted_relative) ** 2).sum(2)).mean(1)
 
