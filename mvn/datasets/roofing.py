@@ -10,7 +10,6 @@ from torch.utils.data import Dataset
 
 from mvn.utils.multiview import Camera
 from mvn.utils.img import get_square_bbox, resize_image, crop_image, normalize_image, scale_bbox
-from mvn.utils.op import translate_euler_to_quaternion
 from mvn.utils import volumetric
 
 
