@@ -14,7 +14,7 @@ opt:
   n_objects_per_epoch: 20000
   n_epochs: 60
 
-  batch_size: 8
+  batch_size: 4
   val_batch_size: 2
 
   lr: 0.0001
@@ -50,7 +50,7 @@ model:
     init_weights: true
     checkpoint: "./data/pretrained/human36m/pose_resnet_4.5_pixels_human36m.pth"
 
-    num_joints: 16
+    num_joints: 14
     num_layers: 152
 
 dataset:
