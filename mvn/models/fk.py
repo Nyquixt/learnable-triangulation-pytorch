@@ -46,8 +46,8 @@ class Encoder(nn.Module):
 class Regressor(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()
-
-        self.fc1 = nn.Linear(in_features, 1024)
+        self.linear = nn.Linear(in_features, out_features)
+        self.fc1 = nn.Linear(out_features, 1024)
         self.drop1 = nn.Dropout()
         self.fc2 = nn.Linear(1024, 1024)
         self.drop2 = nn.Dropout()
@@ -55,9 +55,9 @@ class Regressor(nn.Module):
         nn.init.xavier_uniform_(self.out.weight, gain=0.01)
 
     def forward(self, x, n_iters=3):
-        pred = x
+        pred = self.linear(x)
         for _ in range(n_iters):
-            xc = self.fc1(x)
+            xc = self.fc1(pred)
             xc = self.drop1(xc)
             xc = self.fc2(xc)
             xc = self.drop2(xc)
