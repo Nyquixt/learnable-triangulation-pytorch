@@ -236,7 +236,7 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                 if hasattr(config.opt, "grad_clip"):
                     torch.nn.utils.clip_grad_norm_(model.parameters(), config.opt.grad_clip / config.opt.lr)
 
-                metric_dict['grad_norm_times_lr'].append(config.opt.lr * misc.calc_gradient_norm(filter(lambda x: x[1].requires_grad, model.named_parameters())))
+                # metric_dict['grad_norm_times_lr'].append(config.opt.lr * misc.calc_gradient_norm(filter(lambda x: x[1].requires_grad, model.named_parameters())))
 
                 opt.step()
 
