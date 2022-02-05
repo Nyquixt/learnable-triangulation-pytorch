@@ -70,8 +70,8 @@ class RoofingMultiViewDataset(Dataset):
         n_cameras = len(self.labels['camera_names'])
         assert all(camera_idx in range(n_cameras) for camera_idx in self.ignore_cameras)
 
-        train_subjects = ['S04', 'S05', 'S06', 'S07', 'S08', 'S09']
-        test_subjects = ['S10']
+        train_subjects = ['S04', 'S05', 'S06', 'S07', 'S09']
+        test_subjects = ['S08', 'S10']
 
         train_subjects = list(self.labels['subject_names'].index(x) for x in train_subjects)
         test_subjects  = list(self.labels['subject_names'].index(x) for x in test_subjects)
@@ -86,9 +86,8 @@ class RoofingMultiViewDataset(Dataset):
 
         self.labels['table'] = self.labels['table'][np.concatenate(indices)]
 
-        self.num_keypoints = 16 if kind == "mpii" else 17
-        self.num_angles = 16 if angle_type == "euler" else 32
-        assert self.labels['table']['keypoints'].shape[1] == 16, "Use a newer 'labels' file"
+        self.num_keypoints = 14
+        assert self.labels['table']['keypoints'].shape[1] == 14, "Use a newer 'labels' file"
 
         self.keypoints_3d_pred = None
         if pred_results_path is not None:
@@ -168,10 +167,10 @@ class RoofingMultiViewDataset(Dataset):
         # sample['cuboids'] = volumetric.Cuboid3D(position, sides)
 
         # add ground truth angles, convert from degrees to radians
-        if self.angle_type == "euler":
-            sample['angles'] = np.deg2rad(shot['angles'])
-        else:
-            sample['angles'] = translate_euler_to_quaternion( np.deg2rad(shot['angles']) )
+        # if self.angle_type == "euler":
+        #     sample['angles'] = np.deg2rad(shot['angles'])
+        # else:
+        #     sample['angles'] = translate_euler_to_quaternion( np.deg2rad(shot['angles']) )
 
         # save sample's index
         sample['indexes'] = idx
@@ -228,31 +227,16 @@ class RoofingMultiViewDataset(Dataset):
 
         return subject_scores
 
-    def evaluate(self, keypoints_3d_predicted, split_by_subject=False, transfer_cmu_to_human36m=False, transfer_human36m_to_human36m=False):
+    def evaluate(self, keypoints_3d_predicted, split_by_subject=False):
         keypoints_gt = self.labels['table']['keypoints'][:, :self.num_keypoints]
         if keypoints_3d_predicted.shape != keypoints_gt.shape:
             raise ValueError(
                 '`keypoints_3d_predicted` shape should be %s, got %s' % \
                 (keypoints_gt.shape, keypoints_3d_predicted.shape))
 
-        if transfer_cmu_to_human36m or transfer_human36m_to_human36m:
-            human36m_joints = [10, 11, 15, 14, 1, 4]
-            if transfer_human36m_to_human36m:
-                cmu_joints = [10, 11, 15, 14, 1, 4]
-            else:
-                cmu_joints = [10, 8, 9, 7, 14, 13]
-
-            keypoints_gt = keypoints_gt[:, human36m_joints]
-            keypoints_3d_predicted = keypoints_3d_predicted[:, cmu_joints]
-
-        # mean error per 16/17 joints in mm, for each pose
+        # mean error per 14 joints in mm, for each pose
         per_pose_error = np.sqrt(((keypoints_gt - keypoints_3d_predicted) ** 2).sum(2)).mean(1)
-
-        # relative mean error per 16/17 joints in mm, for each pose
-        if not (transfer_cmu_to_human36m or transfer_human36m_to_human36m):
-            root_index = 6 if self.kind == "mpii" else 6
-        else:
-            root_index = 0
+        root_index = 0
 
         keypoints_gt_relative = keypoints_gt - keypoints_gt[:, root_index:root_index + 1, :]
         keypoints_3d_predicted_relative = keypoints_3d_predicted - keypoints_3d_predicted[:, root_index:root_index + 1, :]

@@ -24,6 +24,14 @@ from mvn.utils import vis, misc, cfg
 from mvn.datasets import roofing
 from mvn.datasets import utils as dataset_utils
 
+def adjust_learning_rate(optimizer, epoch, lr, schedule, gamma):
+    """Sets the learning rate to the initial LR decayed by schedule"""
+    if epoch in schedule:
+        lr *= gamma
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+    return lr
+
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -414,20 +422,28 @@ def main(args):
     else:
         criterion = criterion_class()
 
+    # freeze pretrained weights of backbone
+    for param in model.parameters():
+        param.requires_grad = False
+        
+    # unfreeze backbone final layer
+    for param in model.backbone.final_layer.parameters():
+        param.requires_grad = True
+
+    # unfreeze process_feature layer
+    for param in model.process_features.parameters():
+        param.requires_grad = True
+
+    # unfreeze v2v
+    for param in model.volume_net.parameters():
+        param.requires_grad = True
+
     # optimizer
     opt = None
     if not args.eval:
-        if config.model.name == "vol":
-            opt = torch.optim.Adam(
-                [{'params': model.backbone.parameters()},
-                 {'params': model.process_features.parameters(), 'lr': config.opt.process_features_lr if hasattr(config.opt, "process_features_lr") else config.opt.lr},
-                 {'params': model.volume_net.parameters(), 'lr': config.opt.volume_net_lr if hasattr(config.opt, "volume_net_lr") else config.opt.lr}
-                ],
-                lr=config.opt.lr
-            )
-        else:
-            opt = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.opt.lr)
+        opt = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.opt.lr)
 
+    lr = config.opt.lr
 
     # datasets
     print("Loading data...")
@@ -442,12 +458,13 @@ def main(args):
     if is_distributed:
         model = DistributedDataParallel(model, device_ids=[device])
 
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
 
     if not args.eval:
         # train loop
         n_iters_total_train, n_iters_total_val = 0, 0
         for epoch in range(config.opt.n_epochs):
+            lr = adjust_learning_rate(opt, epoch, lr, config.opt.schedule, config.opt.gamma)
             if train_sampler is not None:
                 train_sampler.set_epoch(epoch)
 
