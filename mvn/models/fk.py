@@ -43,56 +43,62 @@ class Encoder(nn.Module):
 
         return x
 
-# class Regressor(nn.Module):
-#     def __init__(self, in_features, out_features):
-#         super().__init__()
-
-#         self.fc1 = nn.Linear(in_features, 1024)
-#         self.fc2 = nn.Linear(1024, out_features)
-
-#         self.bn = nn.BatchNorm1d(1024)
-
-#     def forward(self, x):
-#         x = self.bn(self.fc1(x))
-#         x = F.relu(x)
-#         x = self.fc2(x)
-        
-#         return x
-
 class Regressor(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()
 
-        self.linear = nn.Linear(in_features, 1024)
-        self.relu = nn.ReLU(inplace=True)
-        self.residual_linear1 = ResidualLinear(1024)
-        self.residual_linear2 = ResidualLinear(1024)
+        self.fc1 = nn.Linear(in_features, 1024)
+        self.drop1 = nn.Dropout()
+        self.fc2 = nn.Linear(1024, 1024)
+        self.drop2 = nn.Dropout()
         self.out = nn.Linear(1024, out_features)
+        nn.init.xavier_uniform_(self.out.weight, gain=0.01)
 
-    def forward(self, x):
-        x = self.relu(self.linear(x))
-        x = self.residual_linear1(x)
-        x = self.residual_linear2(x)
-        x = self.out(x)
-        return x
+    def forward(self, x, n_iters=3):
+        pred = x
+        for _ in range(n_iters):
+            xc = self.fc1(x)
+            xc = self.drop1(xc)
+            xc = self.fc2(xc)
+            xc = self.drop2(xc)
+            pred = self.out(xc) + pred
+        
+        return pred
 
-class ResidualLinear(nn.Module):
-    def __init__(self, features):
-        super().__init__()
+# class Regressor(nn.Module):
+#     def __init__(self, in_features, out_features):
+#         super().__init__()
 
-        self.layers = nn.Sequential(
-            nn.Linear(features, 1024),
-            nn.BatchNorm1d(1024),
-            nn.ReLU(inplace=True),
-            nn.Linear(1024, features),
-            nn.BatchNorm1d(features),
-            nn.ReLU(inplace=True),
-        )
+#         self.linear = nn.Linear(in_features, 1024)
+#         self.relu = nn.ReLU(inplace=True)
+#         self.residual_linear1 = ResidualLinear(1024)
+#         self.residual_linear2 = ResidualLinear(1024)
+#         self.out = nn.Linear(1024, out_features)
 
-    def forward(self, x):
-        z = self.layers(x)
-        out = z + x
-        return out
+#     def forward(self, x):
+#         x = self.relu(self.linear(x))
+#         x = self.residual_linear1(x)
+#         x = self.residual_linear2(x)
+#         x = self.out(x)
+#         return x
+
+# class ResidualLinear(nn.Module):
+#     def __init__(self, features):
+#         super().__init__()
+
+#         self.layers = nn.Sequential(
+#             nn.Linear(features, 1024),
+#             nn.BatchNorm1d(1024),
+#             nn.ReLU(inplace=True),
+#             nn.Linear(1024, features),
+#             nn.BatchNorm1d(features),
+#             nn.ReLU(inplace=True),
+#         )
+
+#     def forward(self, x):
+#         z = self.layers(x)
+#         out = z + x
+#         return out
 
 class V2VRegressor(nn.Module):
     def __init__(self, input_channels, output_features):
@@ -249,17 +255,17 @@ class VolumetricAngleRegressor(nn.Module):
             coord_volume = grid_coord.reshape(self.volume_size, self.volume_size, self.volume_size, 3)
 
             # random rotation on axis
-            if self.training:
-                theta = np.random.uniform(0.0, 2 * np.pi)
-            else:
-                theta = 0.0
+            # if self.training:
+            #     theta = np.random.uniform(0.0, 2 * np.pi)
+            # else:
+            #     theta = 0.0
 
-            if self.kind == "coco":
-                axis = [0, 1, 0]  # y axis
-            elif self.kind == "mpii":
-                axis = [0, 0, 1]  # z axis
-            # theta = 0.0
-            # axis = [0, 0, 1] # try with non-rotate first
+            # if self.kind == "coco":
+            #     axis = [0, 1, 0]  # y axis
+            # elif self.kind == "mpii":
+            #     axis = [0, 0, 1]  # z axis
+            theta = 0.0
+            axis = [0, 0, 1] # try with non-rotate first
 
             center = torch.from_numpy(base_point).type(torch.float).to(device)
 
@@ -291,10 +297,14 @@ class VolumetricAngleRegressor(nn.Module):
 
         keypoints_pred = skeleton.forward_kinematics(normalized, base_points)
 
-        return keypoints_pred, normalized, heatmaps
+        return keypoints_pred, normalized
 
 if __name__ == '__main__':
-    regressor = V2VRegressor(64, 16)
-    X = torch.randn(2, 64, 64, 64, 64)
+    # regressor = V2VRegressor(64, 16)
+    # X = torch.randn(2, 64, 64, 64, 64)
+    # y = regressor(X)
+    # print(y.size())
+    regressor = Regressor(64, 16)
+    X = torch.randn(2, 64)
     y = regressor(X)
     print(y.size())

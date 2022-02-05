@@ -151,15 +151,15 @@ class RoofingMultiViewDataset(Dataset):
             sample['proj_matrices'].append(retval_camera.projection)
 
             # 2D keypoints
-            keypoints_2d = project_3d_points_to_image_plane_without_distortion(retval_camera.projection, shot['keypoints'])
+            # keypoints_2d = project_3d_points_to_image_plane_without_distortion(retval_camera.projection, shot['keypoints'])
             # resize once again down to heatmap resolution
-            kpt2d = keypoints_2d / self.image_shape[0] * self.heatmap_res
-            n_joints, _ = kpt2d.shape
-            kpt2d_heatmap = np.zeros((n_joints, self.heatmap_res, self.heatmap_res))
-            for i in range(n_joints):
-                kpt2d_heatmap[i], _ = draw_labelmap(kpt2d_heatmap[i], kpt2d[i], sigma=1, type='Gaussian')
+            # kpt2d = keypoints_2d / self.image_shape[0] * self.heatmap_res
+            # n_joints, _ = kpt2d.shape
+            # kpt2d_heatmap = np.zeros((n_joints, self.heatmap_res, self.heatmap_res))
+            # for i in range(n_joints):
+            #     kpt2d_heatmap[i], _ = draw_labelmap(kpt2d_heatmap[i], kpt2d[i], sigma=1, type='Gaussian')
 
-            sample['heatmaps_2d'].append(kpt2d_heatmap)
+            # sample['heatmaps_2d'].append(kpt2d_heatmap)
 
         # 3D keypoints
         # add dummy confidences

@@ -151,7 +151,7 @@ def setup_experiment(config, model_name, is_train=True):
     return experiment_dir, writer
 
 
-def one_epoch(model, skeleton, criterion_2d, criterion_3d, opt, config, dataloader, device, epoch, n_iters_total=0, is_train=True, master=False, experiment_dir=None, writer=None):
+def one_epoch(model, skeleton, criterion, opt, config, dataloader, device, epoch, n_iters_total=0, is_train=True, master=False, experiment_dir=None, writer=None):
     name = "train" if is_train else "val"
 
     if is_train:
@@ -180,15 +180,14 @@ def one_epoch(model, skeleton, criterion_2d, criterion_3d, opt, config, dataload
                 print("Found None batch")
                 continue
 
-            images_batch, heatmaps_2d_batch_gt, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt, _, _, proj_matricies_batch = dataset_utils.prepare_batch(batch, device)
+            images_batch, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt, _, _, proj_matricies_batch = dataset_utils.prepare_batch(batch, device)
 
-            keypoints_pred, rotations_pred, heatmaps_2d_pred = model(images_batch, proj_matricies_batch, skeleton, batch)
+            keypoints_pred, rotations_pred = model(images_batch, proj_matricies_batch, skeleton, batch)
 
             # calculate loss
             total_loss = 0.0
-            loss_2d = criterion_2d(heatmaps_2d_pred, heatmaps_2d_batch_gt, None)
-            loss_3d = criterion_3d(keypoints_pred, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt)
-            loss = loss_2d + loss_3d
+            # loss_2d = criterion_2d(heatmaps_2d_pred, heatmaps_2d_batch_gt, None)
+            loss = criterion(keypoints_pred, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt)
             total_loss += loss
             metric_dict['total_loss'].append(total_loss.item())
 
@@ -311,20 +310,15 @@ def main(args):
     elif config.opt.criterion == "MAE":
         criterion = KeypointsMAELoss()
 
-    criterion2 = HeatmapMSELoss()
-
     # freeze pretrained weights of backbone
     for param in model.parameters():
         param.requires_grad = False
-
-    # unfreeze process_feature layer
-    for param in model.process_features.parameters():
-        param.requires_grad = True
-
     # unfreeze backbone final layer
     for param in model.backbone.final_layer.parameters():
         param.requires_grad = True
-
+    # unfreeze process_feature layer
+    for param in model.process_features.parameters():
+        param.requires_grad = True
     # unfreeze v2v
     for param in model.volume_net.parameters():
         param.requires_grad = True
@@ -379,8 +373,8 @@ def main(args):
             if train_sampler is not None:
                 train_sampler.set_epoch(epoch)
 
-            n_iters_total_train = one_epoch(model, skeleton, criterion2, criterion, opt, config, train_dataloader, device, epoch, n_iters_total=n_iters_total_train, is_train=True, master=master, experiment_dir=experiment_dir, writer=writer)
-            n_iters_total_val = one_epoch(model, skeleton, criterion2, criterion, opt, config, val_dataloader, device, epoch, n_iters_total=n_iters_total_val, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
+            n_iters_total_train = one_epoch(model, skeleton, criterion, opt, config, train_dataloader, device, epoch, n_iters_total=n_iters_total_train, is_train=True, master=master, experiment_dir=experiment_dir, writer=writer)
+            n_iters_total_val = one_epoch(model, skeleton, criterion, opt, config, val_dataloader, device, epoch, n_iters_total=n_iters_total_val, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
 
             if master:
                 checkpoint_dir = os.path.join(experiment_dir, "checkpoints", "{:04}".format(epoch))
@@ -391,9 +385,9 @@ def main(args):
             print(f"{n_iters_total_train} iters done.")
     else:
         if args.eval_dataset == 'train':
-            one_epoch(model, skeleton, criterion2, criterion, opt, config, train_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
+            one_epoch(model, skeleton, criterion, opt, config, train_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
         else:
-            one_epoch(model, skeleton, criterion2, criterion, opt, config, val_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
+            one_epoch(model, skeleton, criterion, opt, config, val_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
 
     print("Done.")
 
