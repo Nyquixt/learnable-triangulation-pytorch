@@ -9,7 +9,7 @@ opt:
   criterion: "MSESmooth"
   mse_smooth_threshold: 400
 
-  n_objects_per_epoch: 15000
+  n_objects_per_epoch: 20000
   n_epochs: 31
 
   batch_size: 4
@@ -36,7 +36,7 @@ model:
     init_weights: true
     checkpoint: "./data/pretrained/human36m/pose_resnet_4.5_pixels_human36m.pth"
 
-    num_joints: 16
+    num_joints: 14
     num_layers: 152
 
 dataset:
@@ -44,7 +44,7 @@ dataset:
 
   train:
     roofing_root: "/data/kien/Roof_Phase3/images"
-    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
+    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-fk.npy"
 
     scale_bbox: 1.0
 
@@ -56,7 +56,7 @@ dataset:
 
   val:
     roofing_root: "/data/kien/Roof_Phase3/images"
-    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
+    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-fk.npy"
 
     scale_bbox: 1.0
 

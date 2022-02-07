@@ -43,62 +43,73 @@ class Encoder(nn.Module):
 
         return x
 
-class Regressor(nn.Module):
-    def __init__(self, in_features, out_features):
-        super().__init__()
-        self.linear = nn.Linear(in_features, out_features)
-        self.fc1 = nn.Linear(out_features, 1024)
-        self.drop1 = nn.Dropout()
-        self.fc2 = nn.Linear(1024, 1024)
-        self.drop2 = nn.Dropout()
-        self.out = nn.Linear(1024, out_features)
-        nn.init.xavier_uniform_(self.out.weight, gain=0.01)
-
-    def forward(self, x, n_iters=3):
-        pred = self.linear(x)
-        for _ in range(n_iters):
-            xc = self.fc1(pred)
-            xc = self.drop1(xc)
-            xc = self.fc2(xc)
-            xc = self.drop2(xc)
-            pred = self.out(xc) + pred
-        
-        return pred
-
 # class Regressor(nn.Module):
 #     def __init__(self, in_features, out_features):
 #         super().__init__()
-
-#         self.linear = nn.Linear(in_features, 1024)
-#         self.relu = nn.ReLU(inplace=True)
-#         self.residual_linear1 = ResidualLinear(1024)
-#         self.residual_linear2 = ResidualLinear(1024)
+#         self.linear = nn.Linear(in_features, out_features)
+#         self.fc1 = nn.Linear(out_features, 1024)
+#         self.drop1 = nn.Dropout()
+#         self.fc2 = nn.Linear(1024, 1024)
+#         self.drop2 = nn.Dropout()
 #         self.out = nn.Linear(1024, out_features)
+#         nn.init.xavier_uniform_(self.out.weight, gain=0.01)
 
-#     def forward(self, x):
-#         x = self.relu(self.linear(x))
-#         x = self.residual_linear1(x)
-#         x = self.residual_linear2(x)
-#         x = self.out(x)
-#         return x
+#     def forward(self, x, n_iters=3):
+#         pred = self.linear(x)
+#         for _ in range(n_iters):
+#             xc = self.fc1(pred)
+#             xc = self.drop1(xc)
+#             xc = self.fc2(xc)
+#             xc = self.drop2(xc)
+#             pred = self.out(xc) + pred
+        
+#         return pred
 
-# class ResidualLinear(nn.Module):
-#     def __init__(self, features):
-#         super().__init__()
+class Regressor(nn.Module):
+    def __init__(self, in_features, out_features):
+        super().__init__()
 
-#         self.layers = nn.Sequential(
-#             nn.Linear(features, 1024),
-#             nn.BatchNorm1d(1024),
-#             nn.ReLU(inplace=True),
-#             nn.Linear(1024, features),
-#             nn.BatchNorm1d(features),
-#             nn.ReLU(inplace=True),
-#         )
+        self.linear = nn.Linear(in_features, 1024)
+        self.relu = nn.ReLU(inplace=True)
+        self.residual_linear1 = ResidualLinear(1024)
+        self.residual_linear2 = ResidualLinear(1024)
+        self.out = nn.Linear(1024, out_features)
 
-#     def forward(self, x):
-#         z = self.layers(x)
-#         out = z + x
-#         return out
+        self._initialize_weights()
+
+    def forward(self, x):
+        x = self.relu(self.linear(x))
+        x = self.residual_linear1(x)
+        x = self.residual_linear2(x)
+        x = self.out(x)
+        return x
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.BatchNorm1d):
+                nn.init.constant_(m.weight.data, 1)
+                nn.init.constant_(m.bias.data, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_uniform_(m.weight.data)
+                nn.init.constant_(m.bias.data, 0)
+
+class ResidualLinear(nn.Module):
+    def __init__(self, features):
+        super().__init__()
+
+        self.layers = nn.Sequential(
+            nn.Linear(features, 1024),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, features),
+            nn.BatchNorm1d(features),
+            nn.ReLU(inplace=True),
+        )
+
+    def forward(self, x):
+        z = self.layers(x)
+        out = z + x
+        return out
 
 class V2VRegressor(nn.Module):
     def __init__(self, input_channels, output_features):

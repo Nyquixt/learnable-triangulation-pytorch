@@ -375,21 +375,21 @@ def main(args):
     else:
         criterion = criterion_class()
 
-    # freeze pretrained weights of backbone
-    for param in model.parameters():
-        param.requires_grad = False
+    # # freeze pretrained weights of backbone
+    # for param in model.parameters():
+    #     param.requires_grad = False
         
-    # unfreeze backbone final layer
-    for param in model.backbone.final_layer.parameters():
-        param.requires_grad = True
+    # # unfreeze backbone final layer
+    # for param in model.backbone.final_layer.parameters():
+    #     param.requires_grad = True
 
-    # unfreeze process_feature layer
-    for param in model.process_features.parameters():
-        param.requires_grad = True
+    # # unfreeze process_feature layer
+    # for param in model.process_features.parameters():
+    #     param.requires_grad = True
 
-    # unfreeze v2v
-    for param in model.volume_net.parameters():
-        param.requires_grad = True
+    # # unfreeze v2v
+    # for param in model.volume_net.parameters():
+    #     param.requires_grad = True
 
     # optimizer
     opt = None
