@@ -10,12 +10,15 @@ opt:
   mse_smooth_threshold: 400
 
   n_objects_per_epoch: 20000
-  n_epochs: 31
+  n_epochs: 10
 
   batch_size: 4
   val_batch_size: 4
 
   lr: 0.00001
+
+  schedule: [11, 20]
+  gamma: 0.5
 
   scale_keypoints_3d: 0.1
 
