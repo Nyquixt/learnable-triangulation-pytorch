@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from mvn.utils.img import image_batch_to_torch
+from scipy.spatial.transform import Rotation as R
 
 def make_collate_fn(randomize_n_views=True, min_n_views=10, max_n_views=31):
 
@@ -26,7 +27,7 @@ def make_collate_fn(randomize_n_views=True, min_n_views=10, max_n_views=31):
         batch['cameras'] = [[item['cameras'][i] for item in items] for i in indexes]
 
         batch['keypoints_3d'] = [item['keypoints_3d'] for item in items]
-        batch['angles'] = [item['angles'] for item in items]
+        batch['rotations'] = [item['rotations'] for item in items]
         # batch['cuboids'] = [item['cuboids'] for item in items]
         batch['indexes'] = [item['indexes'] for item in items]
 
@@ -59,11 +60,16 @@ def prepare_batch(batch, device, config, is_train=True):
     # 3D keypoints validity
     # keypoints_3d_validity_batch_gt = torch.from_numpy(np.stack(batch['keypoints_3d'], axis=0)[:, :, 3:]).float().to(device)
 
-    # 3D angles
-    angles_gt = torch.from_numpy(np.stack(batch['angles'], axis=0)).float().to(device)
+    # 3D rotations
+    rotations_gt = []
+    for r in batch['rotations']:
+        rotations_gt.append(
+            R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
+    rotations_gt = np.stack(rotations_gt, axis=0)
+    rotations_gt = torch.from_numpy(rotations_gt).float().to(device)
 
     # projection matricies
     proj_matricies_batch = torch.stack([torch.stack([torch.from_numpy(camera.projection) for camera in camera_batch], dim=0) for camera_batch in batch['cameras']], dim=0).transpose(1, 0)  # shape (batch_size, n_views, 3, 4)
     proj_matricies_batch = proj_matricies_batch.float().to(device)
 
-    return images_batch, keypoints_3d_batch_gt, angles_gt, proj_matricies_batch
+    return images_batch, keypoints_3d_batch_gt, rotations_gt, proj_matricies_batch

@@ -181,13 +181,13 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                 print("Found None batch")
                 continue
 
-            images_batch, keypoints_3d_batch_gt, angles_gt, proj_matricies_batch = dataset_utils.prepare_batch(batch, device, config)
+            images_batch, keypoints_3d_batch_gt, rotations_gt, proj_matricies_batch = dataset_utils.prepare_batch(batch, device, config)
 
-            angles_pred = model(images_batch, proj_matricies_batch, batch)
+            rotations_pred = model(images_batch, proj_matricies_batch, batch)
 
             # calculate loss
             total_loss = 0.0
-            loss = criterion(angles_pred, angles_gt)
+            loss = criterion(rotations_pred, rotations_gt)
             total_loss += loss
             metric_dict['MSELoss'].append(loss.item())
             metric_dict['total_loss'].append(total_loss.item())
@@ -199,13 +199,13 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                 if hasattr(config.opt, "grad_clip"):
                     torch.nn.utils.clip_grad_norm_(model.parameters(), config.opt.grad_clip / config.opt.lr)
 
-                metric_dict['grad_norm_times_lr'].append(config.opt.lr * misc.calc_gradient_norm(filter(lambda x: x[1].requires_grad, model.named_parameters())))
+                # metric_dict['grad_norm_times_lr'].append(config.opt.lr * misc.calc_gradient_norm(filter(lambda x: x[1].requires_grad, model.named_parameters())))
 
                 opt.step()
 
             # save answers for evaluation
             if not is_train:
-                results['angles'].append(angles_pred.detach().cpu().numpy())
+                results['rotations_pred'].append(rotations_pred.detach().cpu().numpy())
                 results['indexes'].append(batch['indexes'])
 
             # dump to tensorboard per-iter loss/metric stats
@@ -226,11 +226,11 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
     # calculate evaluation metrics
     if master:
         if not is_train:
-            results['angles'] = np.concatenate(results['angles'], axis=0)
+            results['rotations_pred'] = np.concatenate(results['rotations_pred'], axis=0)
             results['indexes'] = np.concatenate(results['indexes'])
 
             try:
-                scalar_metric, full_metric = dataloader.dataset.evaluate_angles(results['angles'])
+                scalar_metric, full_metric = dataloader.dataset.evaluate_angles(results['rotations_pred'])
             except Exception as e:
                 print("Failed to evaluate. Reason: ", e)
                 scalar_metric, full_metric = 0.0, {}
@@ -307,24 +307,17 @@ def main(args):
     elif config.opt.criterion == "MAE":
         criterion = nn.L1Loss()
 
-    # freeze pretrained weights
+    # freeze pretrained weights of backbone
     for param in model.parameters():
         param.requires_grad = False
-
-    # unfreeze v2v front layers
-    # for param in model.volume_net.front_layers.parameters():
-    #     param.requires_grad = True
-
-    # unfreeze v2v encoder
-    for param in model.volume_net.encoder.parameters():
+    # unfreeze backbone final layer
+    for param in model.backbone.final_layer.parameters():
         param.requires_grad = True
-
-    # unfreeze v2v back_layers
-    for param in model.volume_net.back_layers.parameters():
+    # unfreeze process_feature layer
+    for param in model.process_features.parameters():
         param.requires_grad = True
-
-    # unfreeze regressor head
-    for param in model.volume_net.regressor.parameters():
+    # unfreeze v2v
+    for param in model.volume_net.parameters():
         param.requires_grad = True
 
     # optimizer
