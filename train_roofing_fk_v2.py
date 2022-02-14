@@ -151,7 +151,7 @@ def setup_experiment(config, model_name, is_train=True):
     return experiment_dir, writer
 
 
-def one_epoch(model, skeleton, criterion, opt, config, dataloader, device, epoch, n_iters_total=0, is_train=True, master=False, experiment_dir=None, writer=None):
+def one_epoch(model, skeleton, kpt_criterion, rot_criterion, opt, config, dataloader, device, epoch, n_iters_total=0, is_train=True, master=False, experiment_dir=None, writer=None):
     name = "train" if is_train else "val"
 
     if is_train:
@@ -186,8 +186,8 @@ def one_epoch(model, skeleton, criterion, opt, config, dataloader, device, epoch
 
             # calculate loss
             total_loss = 0.0
-            loss1 = criterion(keypoints_pred, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt)
-            loss2 = nn.MSELoss(rotations_pred, rotations_gt)
+            loss1 = kpt_criterion(keypoints_pred, keypoints_3d_batch_gt, keypoints_3d_validity_batch_gt)
+            loss2 = rot_criterion(rotations_pred, rotations_gt)
             loss = loss1 + loss2
             total_loss += loss
             metric_dict['total_loss'].append(total_loss.item())
@@ -232,12 +232,19 @@ def one_epoch(model, skeleton, criterion, opt, config, dataloader, device, epoch
             results['indexes'] = np.concatenate(results['indexes'])
 
             try:
-                scalar_metric, full_metric = dataloader.dataset.evaluate(results['keypoints_pred'])
+                scalar_metric_kpt, full_metric_kpt = dataloader.dataset.evaluate(results['keypoints_pred'])
             except Exception as e:
                 print("Failed to evaluate. Reason: ", e)
-                scalar_metric, full_metric = 0.0, {}
+                scalar_metric_kpt, full_metric_kpt = 0.0, {}
 
-            metric_dict['dataset_metric'].append(scalar_metric)
+            try:
+                scalar_metric_rot, full_metric_rot = dataloader.dataset.evaluate_angles(results['rotations_pred'])
+            except Exception as e:
+                print("Failed to evaluate. Reason: ", e)
+                scalar_metric_rot, full_metric_rot = 0.0, {}
+
+            metric_dict['dataset_metric_kpt'].append(scalar_metric_kpt)
+            metric_dict['dataset_metric_rot'].append(scalar_metric_rot)
 
             checkpoint_dir = os.path.join(experiment_dir, "checkpoints", "{:04}".format(epoch))
             os.makedirs(checkpoint_dir, exist_ok=True)
@@ -246,9 +253,13 @@ def one_epoch(model, skeleton, criterion, opt, config, dataloader, device, epoch
             with open(os.path.join(checkpoint_dir, "results.pkl"), 'wb') as fout:
                 pickle.dump(results, fout)
 
-            # dump full metric
-            with open(os.path.join(checkpoint_dir, "metric.json".format(epoch)), 'w') as fout:
-                json.dump(full_metric, fout, indent=4, sort_keys=True)
+            # dump full metric kpt
+            with open(os.path.join(checkpoint_dir, "metric_kpt.json".format(epoch)), 'w') as fout:
+                json.dump(full_metric_kpt, fout, indent=4, sort_keys=True)
+
+            # dump full metric rot
+            with open(os.path.join(checkpoint_dir, "metric_rot.json".format(epoch)), 'w') as fout:
+                json.dump(full_metric_rot, fout, indent=4, sort_keys=True)
 
         # dump to tensorboard per-epoch stats
         for title, value in metric_dict.items():
@@ -305,11 +316,13 @@ def main(args):
 
     # criterion
     if config.opt.criterion == "MSE":
-        criterion = KeypointsMSELoss()
+        kpt_criterion = KeypointsMSELoss()
     elif config.opt.criterion == "MSESmooth":
-        criterion = KeypointsMSESmoothLoss()
+        kpt_criterion = KeypointsMSESmoothLoss()
     elif config.opt.criterion == "MAE":
-        criterion = KeypointsMAELoss()
+        kpt_criterion = KeypointsMAELoss()
+
+    rot_criterion = nn.MSELoss()
 
     # freeze pretrained weights of backbone
     for param in model.parameters():
@@ -374,8 +387,8 @@ def main(args):
             if train_sampler is not None:
                 train_sampler.set_epoch(epoch)
 
-            n_iters_total_train = one_epoch(model, skeleton, criterion, opt, config, train_dataloader, device, epoch, n_iters_total=n_iters_total_train, is_train=True, master=master, experiment_dir=experiment_dir, writer=writer)
-            n_iters_total_val = one_epoch(model, skeleton, criterion, opt, config, val_dataloader, device, epoch, n_iters_total=n_iters_total_val, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
+            n_iters_total_train = one_epoch(model, skeleton, kpt_criterion, rot_criterion, opt, config, train_dataloader, device, epoch, n_iters_total=n_iters_total_train, is_train=True, master=master, experiment_dir=experiment_dir, writer=writer)
+            n_iters_total_val = one_epoch(model, skeleton, kpt_criterion, rot_criterion, opt, config, val_dataloader, device, epoch, n_iters_total=n_iters_total_val, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
 
             if master:
                 checkpoint_dir = os.path.join(experiment_dir, "checkpoints", "{:04}".format(epoch))
@@ -386,9 +399,9 @@ def main(args):
             print(f"{n_iters_total_train} iters done.")
     else:
         if args.eval_dataset == 'train':
-            one_epoch(model, skeleton, criterion, opt, config, train_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
+            one_epoch(model, skeleton, kpt_criterion, rot_criterion, opt, config, train_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
         else:
-            one_epoch(model, skeleton, criterion, opt, config, val_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
+            one_epoch(model, skeleton, kpt_criterion, rot_criterion, opt, config, val_dataloader, device, 0, n_iters_total=0, is_train=False, master=master, experiment_dir=experiment_dir, writer=writer)
 
     print("Done.")
 

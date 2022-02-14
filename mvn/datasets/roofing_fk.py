@@ -5,9 +5,9 @@ import numpy as np
 import cv2
 from torch.utils.data import Dataset
 
-from mvn.utils.multiview import Camera, project_3d_points_to_image_plane_without_distortion
+from mvn.utils.multiview import Camera
 from mvn.utils.img import resize_image, crop_image, normalize_image, scale_bbox
-from mvn.utils.op import draw_labelmap
+from scipy.spatial.transform import Rotation as R
 
 class RoofingMultiViewDataset(Dataset):
     """
@@ -257,7 +257,7 @@ class RoofingMultiViewDataset(Dataset):
 
         return result['per_pose_error_relative']['Average']['Average'], result
 
-    def evaluate_angles(self, angles_pred):
+    def evaluate_angles(self, rotations_pred):
         def evaluate_by_actions(self, per_pose_error, mask=None):
             if mask is None:
                 mask = np.ones_like(per_pose_error, dtype=bool)
@@ -278,21 +278,22 @@ class RoofingMultiViewDataset(Dataset):
 
             return action_scores
         
-        angles_gt = np.deg2rad(self.labels['table']['angles'][:, :16])
-        if self.num_angles == 32:
-            quat_angles_gt = []
-            for a in angles_gt:
-                quat_angles_gt.append(translate_euler_to_quaternion(a))
-            angles_gt = np.array(quat_angles_gt)
-        if angles_pred.shape != angles_gt.shape:
+        rotations_gt = self.labels['table']['rotations']
+        gt = []
+        for r in rotations_gt:
+            gt.append(
+                R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
+        rotations_gt_quat = np.stack(gt, axis=0)
+        
+        if rotations_pred.shape != rotations_gt_quat.shape:
             raise ValueError(
-                '`angles_pred` shape should be %s, got %s' % \
-                (angles_gt.shape, angles_pred.shape))
+                '`rotations_pred` shape should be %s, got %s' % \
+                (rotations_gt_quat.shape, rotations_pred.shape))
 
-        per_pose_error = np.sqrt(((angles_gt - angles_pred) ** 2)).mean(1)
+        per_pose_error = np.sqrt(((rotations_gt_quat - rotations_pred) ** 2).sum(2)).mean(1)
 
         subject_scores = {
-            'Average': evaluate_by_actions(self, per_pose_error)
+            'Average': evaluate_by_actions(per_pose_error)
         }
 
         for subject_idx in range(len(self.labels['subject_names'])):

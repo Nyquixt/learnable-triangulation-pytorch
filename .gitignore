@@ -111,3 +111,5 @@ nohup.out
 angle-prediction-results/
 plots/
 annotations/
+results/
+figs/
