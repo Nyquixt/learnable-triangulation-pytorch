@@ -159,6 +159,8 @@ class RoofingMultiViewDataset(Dataset):
             shot['keypoints'][:self.num_keypoints],
             ((0,0), (0,1)), 'constant', constant_values=1.0)
 
+        sample['rotations'] = shot['rotations'] # zxy euler in degrees
+
         # build cuboid
         # base_point = sample['keypoints_3d'][6, :3]
         # sides = np.array([self.cuboid_side, self.cuboid_side, self.cuboid_side])
