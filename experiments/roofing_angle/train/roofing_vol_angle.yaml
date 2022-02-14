@@ -45,7 +45,7 @@ model:
     style: "simple"
 
     init_weights: true
-    checkpoint: "data/pretrained/roofing/roofing_vol_gt_0006.pth"
+    checkpoint: "data/pretrained/human36m/pose_resnet_4.5_pixels_human36m.pth"
 
     num_joints: 14
     num_layers: 152
