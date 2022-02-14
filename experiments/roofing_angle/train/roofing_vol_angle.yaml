@@ -21,6 +21,8 @@ opt:
   schedule: [25, 45]
   gamma: 0.5
 
+  angle_type: "quaternion"
+
 model:
   name: "vol"
   kind: "mpii"
