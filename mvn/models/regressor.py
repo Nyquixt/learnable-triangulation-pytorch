@@ -142,7 +142,6 @@ class VolumetricAngleRegressor(nn.Module):
         super().__init__()
 
         self.num_joints = config.model.backbone.num_joints
-        self.num_angles = 16 if config.opt.angle_type == "euler" else 32
         self.volume_aggregation_method = config.model.volume_aggregation_method
 
         # volume
@@ -177,7 +176,7 @@ class VolumetricAngleRegressor(nn.Module):
             nn.Conv2d(256, 32, 1)
         ) # 1x1 Conv2d to squeeze the channel size before procesing volumes
 
-        self.volume_net = V2VRegressor(32, self.num_angles)
+        self.volume_net = V2VRegressor(32, self.num_joints * 4)
 
 
     def forward(self, images, proj_matricies, batch):
@@ -229,7 +228,7 @@ class VolumetricAngleRegressor(nn.Module):
             if self.kind == "coco":
                 base_point = (keypoints_3d[11, :3] + keypoints_3d[12, :3]) / 2
             elif self.kind == "mpii":
-                base_point = keypoints_3d[6, :3]
+                base_point = keypoints_3d[0, :3]
 
             base_points[batch_i] = torch.from_numpy(base_point).to(device)
 
@@ -287,12 +286,11 @@ class VolumetricAngleRegressor(nn.Module):
         volumes = op.unproject_heatmaps(features, proj_matricies, coord_volumes, volume_aggregation_method=self.volume_aggregation_method, vol_confidences=vol_confidences)
 
         # integral 3d
-        output = self.volume_net(volumes)
-        if self.num_angles == 32: # normalize to unit quaternion
-            output = output.view(-1, 8, 4)
-            output = F.normalize(output, dim=2).view(-1, 32)
+        rotations = self.volume_net(volumes) # output quaternions
+        rotations = rotations.view(-1, self.num_joints, 4)
+        normalized = F.normalize(rotations, dim=2).view(rotations.shape) # normalize quaternions to get unit quaternions
 
-        return output
+        return normalized
 
 if __name__ == '__main__':
     regressor = V2VRegressor(64, 16)
