@@ -44,7 +44,7 @@ def make_collate_fn(randomize_n_views=True, min_n_views=10, max_n_views=31):
 def worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
 
-def prepare_batch(batch, device, config, is_train=True):
+def prepare_batch(batch, device, config):
     # images
     images_batch = []
     for image_batch in batch['images']:
@@ -61,12 +61,15 @@ def prepare_batch(batch, device, config, is_train=True):
     # keypoints_3d_validity_batch_gt = torch.from_numpy(np.stack(batch['keypoints_3d'], axis=0)[:, :, 3:]).float().to(device)
 
     # 3D rotations
-    rotations_gt = []
-    for r in batch['rotations']:
-        rotations_gt.append(
-            R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
-    rotations_gt = np.stack(rotations_gt, axis=0)
-    rotations_gt = torch.from_numpy(rotations_gt).float().to(device)
+    if config.model.angle_type == 'q':
+        rotations_gt = []
+        for r in batch['rotations']:
+            rotations_gt.append(
+                R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
+        rotations_gt = np.stack(rotations_gt, axis=0)
+        rotations_gt = torch.from_numpy(rotations_gt).float().to(device)
+    else:
+        rotations_gt = torch.from_numpy( np.deg2rad( np.stack(batch['rotations'], axis=0)) ).float().to(device)
 
     # projection matricies
     proj_matricies_batch = torch.stack([torch.stack([torch.from_numpy(camera.projection) for camera in camera_batch], dim=0) for camera_batch in batch['cameras']], dim=0).transpose(1, 0)  # shape (batch_size, n_views, 3, 4)

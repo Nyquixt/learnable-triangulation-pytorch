@@ -142,6 +142,7 @@ class VolumetricAngleRegressor(nn.Module):
         super().__init__()
 
         self.num_joints = config.model.backbone.num_joints
+        self.angle_type = config.model.angle_type
         self.volume_aggregation_method = config.model.volume_aggregation_method
 
         # volume
@@ -176,7 +177,7 @@ class VolumetricAngleRegressor(nn.Module):
             nn.Conv2d(256, 32, 1)
         ) # 1x1 Conv2d to squeeze the channel size before procesing volumes
 
-        self.volume_net = V2VRegressor(32, self.num_joints * 4)
+        self.volume_net = V2VRegressor(32, self.num_joints * 4 if self.angle_type == 'q' else self.num_joints * 3)
 
 
     def forward(self, images, proj_matricies, batch):
@@ -286,11 +287,12 @@ class VolumetricAngleRegressor(nn.Module):
         volumes = op.unproject_heatmaps(features, proj_matricies, coord_volumes, volume_aggregation_method=self.volume_aggregation_method, vol_confidences=vol_confidences)
 
         # integral 3d
-        rotations = self.volume_net(volumes) # output quaternions
-        rotations = rotations.view(-1, self.num_joints, 4)
-        normalized = F.normalize(rotations, dim=2).view(rotations.shape) # normalize quaternions to get unit quaternions
+        rotations = self.volume_net(volumes) # output rotations in either quaternions or euler
+        if self.angle_type == 'q':
+            rotations = rotations.view(-1, self.num_joints, 4)
+            rotations = F.normalize(rotations, dim=2).view(rotations.shape) # normalize quaternions to get unit quaternions
 
-        return normalized
+        return rotations
 
 if __name__ == '__main__':
     regressor = V2VRegressor(64, 16)

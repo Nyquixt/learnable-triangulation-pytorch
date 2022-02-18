@@ -1,40 +1,37 @@
-title: "roofing_vol_angle_quat_gt_mae"
+title: "roofing_vol_angle_euler"
 kind: "mpii"
 vis_freq: 1000
 vis_n_elements: 10
 
-image_shape: [256, 256]
+image_shape: [384, 384]
 
 opt:
-  criterion: "MAE"
+  criterion: "MSE"
 
   use_volumetric_ce_loss: true
   volumetric_ce_loss_weight: 0.01
 
-  n_objects_per_epoch: 15000
-  n_epochs: 31
+  n_objects_per_epoch: 20000
+  n_epochs: 40
 
-  batch_size: 16
-  val_batch_size: 8
+  batch_size: 8
+  val_batch_size: 4
 
-  lr: 0.001
-  process_features_lr: 0.001
-  volume_net_lr: 0.001
+  lr: 0.0001
 
-  schedule: [10, 20]
+  schedule: [25, 35]
   gamma: 0.1
-
-  angle_type: "quaternion"
 
   scale_keypoints_3d: 0.1
 
 model:
   name: "vol"
   kind: "mpii"
+  angle_type: "e"
   volume_aggregation_method: "softmax"
 
-  init_weights: true
-  checkpoint: "data/pretrained/roofing/roofing_vol_gt_0006.pth"
+  init_weights: false
+  checkpoint: ""
 
   use_gt_pelvis: true
 
@@ -52,9 +49,9 @@ model:
     style: "simple"
 
     init_weights: true
-    checkpoint: "data/pretrained/roofing/roofing_vol_gt_0006.pth"
+    checkpoint: "data/pretrained/human36m/pose_resnet_4.5_pixels_human36m.pth"
 
-    num_joints: 16
+    num_joints: 14
     num_layers: 152
 
 dataset:
@@ -62,7 +59,7 @@ dataset:
 
   train:
     roofing_root: "/data/kien/Roof_Phase3/images"
-    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
+    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-fk.npy"
 
     scale_bbox: 1.0
 
@@ -74,7 +71,7 @@ dataset:
 
   val:
     roofing_root: "/data/kien/Roof_Phase3/images"
-    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-v2.npy"
+    labels_path: "/data/kien/Roof_Phase3/annotations/roofing-multiview-fk.npy"
 
     scale_bbox: 1.0
 

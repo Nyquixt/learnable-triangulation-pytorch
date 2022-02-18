@@ -63,7 +63,7 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
             kind=config.kind,
             ignore_cameras=config.dataset.train.ignore_cameras if hasattr(config.dataset.train, "ignore_cameras") else [],
             crop=config.dataset.train.crop if hasattr(config.dataset.train, "crop") else True,
-            angle_type=config.opt.angle_type
+            angle_type=config.model.angle_type
         )
 
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if distributed_train else None
@@ -94,7 +94,7 @@ def setup_human36m_dataloaders(config, is_train, distributed_train):
         kind=config.kind,
         ignore_cameras=config.dataset.val.ignore_cameras if hasattr(config.dataset.val, "ignore_cameras") else [],
         crop=config.dataset.val.crop if hasattr(config.dataset.val, "crop") else True,
-        angle_type=config.opt.angle_type
+        angle_type=config.model.angle_type
     )
 
     val_dataloader = DataLoader(
@@ -181,7 +181,7 @@ def one_epoch(model, criterion, opt, config, dataloader, device, epoch, n_iters_
                 print("Found None batch")
                 continue
 
-            images_batch, keypoints_3d_batch_gt, rotations_gt, proj_matricies_batch = dataset_utils.prepare_batch(batch, device, config)
+            images_batch, _, rotations_gt, proj_matricies_batch = dataset_utils.prepare_batch(batch, device, config)
 
             rotations_pred = model(images_batch, proj_matricies_batch, batch)
 

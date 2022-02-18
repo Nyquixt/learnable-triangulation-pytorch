@@ -31,7 +31,7 @@ class RoofingMultiViewDataset(Dataset):
                  kind="mpii",
                  ignore_cameras=[],
                  crop=True,
-                 angle_type="euler"
+                 angle_type="q"
                  ):
         """
             roofing_root:
@@ -167,12 +167,6 @@ class RoofingMultiViewDataset(Dataset):
         # position = base_point - sides / 2
         # sample['cuboids'] = volumetric.Cuboid3D(position, sides)
 
-        # add ground truth angles, convert from degrees to radians
-        # if self.angle_type == "euler":
-        #     sample['angles'] = np.deg2rad(shot['angles'])
-        # else:
-        #     sample['angles'] = translate_euler_to_quaternion( np.deg2rad(shot['angles']) )
-
         # save sample's index
         sample['indexes'] = idx
 
@@ -273,18 +267,24 @@ class RoofingMultiViewDataset(Dataset):
             return action_scores
         
         rotations_gt = self.labels['table']['rotations']
-        gt = []
-        for r in rotations_gt:
-            gt.append(
-                R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
-        rotations_gt = np.stack(gt, axis=0)
+        if self.angle_type == 'q':
+            gt = []
+            for r in rotations_gt:
+                gt.append(
+                    R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
+            rotations_gt = np.stack(gt, axis=0)
+        else:
+            rotations_gt = np.deg2rad(rotations_gt)
         
         if rotations_pred.shape != rotations_gt.shape:
             raise ValueError(
                 '`rotations_pred` shape should be %s, got %s' % \
                 (rotations_gt.shape, rotations_pred.shape))
 
-        per_pose_error = np.sqrt(((rotations_gt - rotations_pred) ** 2).sum(2)).mean(1)
+        if self.angle_type == 'q':
+            per_pose_error = np.sqrt(((rotations_gt - rotations_pred) ** 2).sum(2)).mean(1)
+        else:
+            per_pose_error = np.sqrt(((rotations_gt - rotations_pred) ** 2).mean(1))
 
         subject_scores = {
             'Average': evaluate_by_actions(self, per_pose_error)
