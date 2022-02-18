@@ -274,7 +274,7 @@ class RoofingMultiViewDataset(Dataset):
                     R.from_euler('ZXY', r, degrees=True).as_quat()[:, [3, 0, 1, 2]])
             rotations_gt = np.stack(gt, axis=0)
         else:
-            rotations_gt = np.deg2rad(rotations_gt)
+            rotations_gt = np.reshape(np.deg2rad(rotations_gt), (-1, 42))
         
         if rotations_pred.shape != rotations_gt.shape:
             raise ValueError(
