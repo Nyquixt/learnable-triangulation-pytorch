@@ -69,7 +69,7 @@ def prepare_batch(batch, device, config):
         rotations_gt = np.stack(rotations_gt, axis=0)
         rotations_gt = torch.from_numpy(rotations_gt).float().to(device)
     else:
-        rotations_gt = torch.from_numpy( np.deg2rad( np.stack(batch['rotations'], axis=0)) ).float().to(device)
+        rotations_gt = torch.from_numpy( np.deg2rad( np.stack(batch['rotations'], axis=0)[:, :42]) ).float().to(device)
 
     # projection matricies
     proj_matricies_batch = torch.stack([torch.stack([torch.from_numpy(camera.projection) for camera in camera_batch], dim=0) for camera_batch in batch['cameras']], dim=0).transpose(1, 0)  # shape (batch_size, n_views, 3, 4)
